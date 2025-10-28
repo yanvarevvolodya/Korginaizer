@@ -2,55 +2,115 @@ namespace MauiApp1
 {
     public partial class TasksPage : ContentPage
     {
+        private bool _isCategoriesPanelVisible = true;
+        private const string PanelStateKey = "CategoriesPanelState";
+
         public TasksPage()
         {
             InitializeComponent();
 
-            LoadTasksContent();
+            // Загружаем сохраненное состояние
+            _isCategoriesPanelVisible = Preferences.Get(PanelStateKey, true);
+            ApplyInitialPanelState();
         }
 
-        private void OnToggleCategoriesButtonClicked(object sender, EventArgs e)
+
+
+        private void ApplyInitialPanelState()
         {
-            // Если текущий контент - TasksContent, вызываем его метод
-            if (MainContentArea.Content is Views.TasksContent tasksContent)
+            if (CategoriesPanel == null || TasksContainer == null) return;
+
+            if (_isCategoriesPanelVisible)
             {
-                tasksContent.ToggleCategoriesPanel();
+                CategoriesPanel.TranslationX = 0;
+                TasksContainer.TranslationX = 200;
+                CategoriesPanel.IsVisible = true;
+            }
+            else
+            {
+                CategoriesPanel.TranslationX = -200;
+                TasksContainer.TranslationX = 0;
+                CategoriesPanel.IsVisible = false;
             }
         }
 
-        private void LoadTasksContent()
+        private async void OnToggleCategoriesButtonClicked(object sender, EventArgs e)
         {
-            MainContentArea.Content = new Views.TasksContent();
+            if (CategoriesPanel == null || TasksContainer == null) return;
+
+            _isCategoriesPanelVisible = !_isCategoriesPanelVisible;
+            Preferences.Set(PanelStateKey, _isCategoriesPanelVisible);
+
+            if (_isCategoriesPanelVisible)
+            {
+                await ShowCategoriesPanel();
+            }
+            else
+            {
+                await HideCategoriesPanel();
+            }
         }
 
-        private void LoadCalendarContent()
+        private async Task ShowCategoriesPanel()
         {
-            MainContentArea.Content = new Views.CalendarContent();
+            CategoriesPanel.IsVisible = true;
+            await Task.WhenAll(
+                CategoriesPanel.TranslateTo(0, 0, 300, Easing.CubicOut),
+                TasksContainer.TranslateTo(200, 0, 300, Easing.CubicOut)
+            );
         }
 
-        private void LoadSettingsContent()
+        private async Task HideCategoriesPanel()
         {
-            MainContentArea.Content = new Views.SettingsContent();
+            await Task.WhenAll(
+                CategoriesPanel.TranslateTo(-200, 0, 300, Easing.CubicOut),
+                TasksContainer.TranslateTo(0, 0, 300, Easing.CubicOut)
+            );
+            CategoriesPanel.IsVisible = false;
         }
 
-
-        // Обработчики кнопок (добавьте их в XAML с Clicked)
+        // Обработчики для кнопок навигации
         private void OnTasksButtonClicked(object sender, EventArgs e)
         {
-            LoadTasksContent();
-            HeaderTitleLabel.Text = "Задачи";
+            // Уже на задачах
         }
 
         private void OnCalendarButtonClicked(object sender, EventArgs e)
         {
-            LoadCalendarContent();
-            HeaderTitleLabel.Text = "Календарь";
+            // Просто меняем главную страницу
+            Application.Current.MainPage = new CalendarPage();
         }
 
         private void OnSettingsButtonClicked(object sender, EventArgs e)
         {
-            LoadSettingsContent();
-            HeaderTitleLabel.Text = "Настройки";
+            Application.Current.MainPage = new SettingsPage();
+        }
+
+
+        private void LoadCalendarContent()
+        {
+            // Скрываем зеленую панель при переходе в календарь
+            if (_isCategoriesPanelVisible)
+            {
+                _isCategoriesPanelVisible = false;
+                ApplyInitialPanelState();
+            }
+
+            // Загружаем CalendarContent
+            // MainContentArea.Content = new Views.CalendarContent();
+        }
+
+        private void LoadSettingsContent()
+        {
+            // Скрываем зеленую панель при переходе в настройки
+            if (_isCategoriesPanelVisible)
+            {
+                _isCategoriesPanelVisible = false;
+                ApplyInitialPanelState();
+            }
+
+            // Загружаем SettingsContent
+            // MainContentArea.Content = new Views.SettingsContent();
         }
     }
 }
