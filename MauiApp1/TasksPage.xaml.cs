@@ -1,42 +1,165 @@
+п»їusing MauiApp1.Views;
+
 namespace MauiApp1
 {
-    public partial class TasksPage : ContentPage
+    public partial class TasksPage : BasePage
     {
         private bool _isCategoriesPanelVisible = true;
         private const string PanelStateKey = "CategoriesPanelState";
+        private Grid _categoriesPanel;
+        private ScrollView _tasksContainer;
+        private Grid _mainContentGrid;
 
         public TasksPage()
         {
             InitializeComponent();
 
-            // Загружаем сохраненное состояние
+            SetHeaderTitle("Р—Р°РґР°С‡Рё");
+            SetActiveButton("TasksPage");
+
+            var toggleButton = new Button
+            {
+                Text = "в°",
+                BackgroundColor = Colors.Transparent,
+                WidthRequest = 60,
+                TextColor = Colors.White
+            };
+            toggleButton.Clicked += OnToggleCategoriesClicked;
+            SetHeaderButton(toggleButton);
+
+            SetPageContent(CreateTasksContent());
+
             _isCategoriesPanelVisible = Preferences.Get(PanelStateKey, true);
             ApplyInitialPanelState();
         }
 
+        private View CreateTasksContent()
+        {
+            // РЎРѕР·РґР°РµРј Р·РµР»РµРЅСѓСЋ РїР°РЅРµР»СЊ
+            _categoriesPanel = new Grid
+            {
+                BackgroundColor = Color.FromArgb("#000062"),
+                TranslationX = -200,
+                WidthRequest = 200
+            };
 
+            var stackLayout = new StackLayout
+            {
+                Spacing = 10,
+                Padding = new Thickness(10, 40, 10, 0)
+            };
+
+            stackLayout.Children.Add(new Button
+            {
+                Text = "РЎРѕР·РґР°С‚СЊ СЃРїРёСЃРѕРє",
+                BackgroundColor = Color.FromArgb("#000033"),
+                TextColor = Colors.White
+            });
+
+            stackLayout.Children.Add(new Label
+            {
+                Text = "РњРѕРё СЃРїРёСЃРєРё:",
+                TextColor = Colors.White,
+                FontAttributes = FontAttributes.Bold
+            });
+
+            stackLayout.Children.Add(new Button
+            {
+                Text = "Р›РёС‡РЅС‹Рµ",
+                BackgroundColor = Colors.Transparent,
+                TextColor = Colors.White
+            });
+
+            stackLayout.Children.Add(new Button
+            {
+                Text = "Р Р°Р±РѕС‚Р°",
+                BackgroundColor = Colors.Transparent,
+                TextColor = Colors.White
+            });
+
+            stackLayout.Children.Add(new Button
+            {
+                Text = "РџРѕРєСѓРїРєРё",
+                BackgroundColor = Colors.Transparent,
+                TextColor = Colors.White
+            });
+
+            _categoriesPanel.Children.Add(stackLayout);
+
+            // РЎРѕР·РґР°РµРј РєРѕРЅС‚РµР№РЅРµСЂ Р·Р°РґР°С‡
+            _tasksContainer = new ScrollView();
+
+            var tasksStackLayout = new StackLayout { Padding = 20 };
+
+            tasksStackLayout.Children.Add(new Label
+            {
+                Text = "РЎРїРёСЃРѕРє Р·Р°РґР°С‡...",
+                FontSize = 16,
+                TextColor = Colors.White
+            });
+
+            tasksStackLayout.Children.Add(new Frame
+            {
+                BackgroundColor = Color.FromArgb("#f5f5f5"),
+                Padding = 15,
+                Content = new Label { Text = "РџСЂРёРјРµСЂ Р·Р°РґР°С‡Рё 1" }
+            });
+
+            tasksStackLayout.Children.Add(new Frame
+            {
+                BackgroundColor = Color.FromArgb("#f5f5f5"),
+                Padding = 15,
+                Content = new Label { Text = "РџСЂРёРјРµСЂ Р·Р°РґР°С‡Рё 2" }
+            });
+
+            _tasksContainer.Content = tasksStackLayout;
+
+            // РЎРѕР·РґР°РµРј РѕСЃРЅРѕРІРЅРѕР№ Grid
+            _mainContentGrid = new Grid();
+
+            // Р”РѕР±Р°РІР»СЏРµРј РєРѕР»РѕРЅРєРё
+            _mainContentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 200 });
+            _mainContentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+
+            // Р”РѕР±Р°РІР»СЏРµРј СЃС‚СЂРѕРєСѓ
+            _mainContentGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Star });
+
+            // Р”РѕР±Р°РІР»СЏРµРј СЌР»РµРјРµРЅС‚С‹ РІ Grid СЃ СѓРєР°Р·Р°РЅРёРµРј РїРѕР·РёС†РёР№
+            _mainContentGrid.Children.Add(_categoriesPanel);
+            Grid.SetColumn(_categoriesPanel, 0);
+            Grid.SetRow(_categoriesPanel, 0);
+
+            _mainContentGrid.Children.Add(_tasksContainer);
+            Grid.SetColumn(_tasksContainer, 0);
+            Grid.SetColumnSpan(_tasksContainer, 2);
+            Grid.SetRow(_tasksContainer, 0);
+
+            return _mainContentGrid;
+        }
 
         private void ApplyInitialPanelState()
         {
-            if (CategoriesPanel == null || TasksContainer == null) return;
+            if (_categoriesPanel == null || _tasksContainer == null) return;
 
             if (_isCategoriesPanelVisible)
             {
-                CategoriesPanel.TranslationX = 0;
-                TasksContainer.TranslationX = 200;
-                CategoriesPanel.IsVisible = true;
+                _categoriesPanel.TranslationX = 0;
+                Grid.SetColumn(_tasksContainer, 1);
+                Grid.SetColumnSpan(_tasksContainer, 1);
+                _categoriesPanel.IsVisible = true;
             }
             else
             {
-                CategoriesPanel.TranslationX = -200;
-                TasksContainer.TranslationX = 0;
-                CategoriesPanel.IsVisible = false;
+                _categoriesPanel.TranslationX = -200;
+                Grid.SetColumn(_tasksContainer, 0);
+                Grid.SetColumnSpan(_tasksContainer, 2);
+                _categoriesPanel.IsVisible = false;
             }
         }
 
-        private async void OnToggleCategoriesButtonClicked(object sender, EventArgs e)
+        private async void OnToggleCategoriesClicked(object sender, EventArgs e)
         {
-            if (CategoriesPanel == null || TasksContainer == null) return;
+            if (_categoriesPanel == null || _tasksContainer == null) return;
 
             _isCategoriesPanelVisible = !_isCategoriesPanelVisible;
             Preferences.Set(PanelStateKey, _isCategoriesPanelVisible);
@@ -53,64 +176,34 @@ namespace MauiApp1
 
         private async Task ShowCategoriesPanel()
         {
-            CategoriesPanel.IsVisible = true;
+            _categoriesPanel.IsVisible = true;
+
+            // РђРЅРёРјР°С†РёСЏ РїРѕСЏРІР»РµРЅРёСЏ
             await Task.WhenAll(
-                CategoriesPanel.TranslateTo(0, 0, 300, Easing.CubicOut),
-                TasksContainer.TranslateTo(200, 0, 300, Easing.CubicOut)
+                _categoriesPanel.TranslateTo(0, 0, 300, Easing.CubicOut),
+                _tasksContainer.TranslateTo(200, 0, 300, Easing.CubicOut)
             );
+
+            // РћР±РЅРѕРІР»СЏРµРј РїРѕР·РёС†РёСЋ РІ Grid
+            Grid.SetColumn(_tasksContainer, 1);
+            Grid.SetColumnSpan(_tasksContainer, 1);
+            _tasksContainer.TranslationX = 0;
         }
 
         private async Task HideCategoriesPanel()
         {
+            // РђРЅРёРјР°С†РёСЏ СЃРєСЂС‹С‚РёСЏ
             await Task.WhenAll(
-                CategoriesPanel.TranslateTo(-200, 0, 300, Easing.CubicOut),
-                TasksContainer.TranslateTo(0, 0, 300, Easing.CubicOut)
+                _categoriesPanel.TranslateTo(-200, 0, 300, Easing.CubicOut),
+                _tasksContainer.TranslateTo(0, 0, 300, Easing.CubicOut)
             );
-            CategoriesPanel.IsVisible = false;
-        }
 
-        // Обработчики для кнопок навигации
-        private void OnTasksButtonClicked(object sender, EventArgs e)
-        {
-            // Уже на задачах
-        }
+            _categoriesPanel.IsVisible = false;
 
-        private void OnCalendarButtonClicked(object sender, EventArgs e)
-        {
-            // Просто меняем главную страницу
-            Application.Current.MainPage = new CalendarPage();
-        }
-
-        private void OnSettingsButtonClicked(object sender, EventArgs e)
-        {
-            Application.Current.MainPage = new SettingsPage();
-        }
-
-
-        private void LoadCalendarContent()
-        {
-            // Скрываем зеленую панель при переходе в календарь
-            if (_isCategoriesPanelVisible)
-            {
-                _isCategoriesPanelVisible = false;
-                ApplyInitialPanelState();
-            }
-
-            // Загружаем CalendarContent
-            // MainContentArea.Content = new Views.CalendarContent();
-        }
-
-        private void LoadSettingsContent()
-        {
-            // Скрываем зеленую панель при переходе в настройки
-            if (_isCategoriesPanelVisible)
-            {
-                _isCategoriesPanelVisible = false;
-                ApplyInitialPanelState();
-            }
-
-            // Загружаем SettingsContent
-            // MainContentArea.Content = new Views.SettingsContent();
+            // РћР±РЅРѕРІР»СЏРµРј РїРѕР·РёС†РёСЋ РІ Grid
+            Grid.SetColumn(_tasksContainer, 0);
+            Grid.SetColumnSpan(_tasksContainer, 2);
+            _tasksContainer.TranslationX = 0;
         }
     }
 }

@@ -1,25 +1,27 @@
+using MauiApp1.Views;
+
 namespace MauiApp1
 {
-    public partial class SettingsPage : ContentPage
+    public partial class SettingsPage : BasePage
     {
         public SettingsPage()
         {
             InitializeComponent();
-        }
 
-        private void OnTasksButtonClicked(object sender, EventArgs e)
-        {
-            Application.Current.MainPage = new TasksPage();
-        }
+            SetHeaderTitle("Настройки");
+            SetActiveButton("SettingsPage");
 
-        private void OnSettingsButtonClicked(object sender, EventArgs e)
-        {
-            
-        }
+            // Настройки не имеют специальной кнопки в шапке
+            SetHeaderButton(null);
 
-        private void OnCalendarButtonClicked(object sender, EventArgs e)
-        {
-            Application.Current.MainPage = new CalendarPage();
+            SetPageContent(new Label
+            {
+                Text = "Настройки будут здесь...",
+                TextColor = Colors.White,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                FontSize = 16
+            });
         }
     }
 }

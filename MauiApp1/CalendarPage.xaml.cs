@@ -1,24 +1,26 @@
+using MauiApp1.Views;
+
 namespace MauiApp1;
 
-public partial class CalendarPage : ContentPage
+public partial class CalendarPage : BasePage
 {
-	public CalendarPage()
-	{
-		InitializeComponent();
-	}
-
-    private void OnTasksButtonClicked(object sender, EventArgs e)
+    public CalendarPage()
     {
-        Application.Current.MainPage = new TasksPage();
-    }
+        InitializeComponent();
 
-    private void OnSettingsButtonClicked(object sender, EventArgs e)
-    {
-        Application.Current.MainPage = new SettingsPage();
-    }
+        SetHeaderTitle("Календарь");
+        SetActiveButton("CalendarPage");
 
-    private void OnCalendarButtonClicked(object sender, EventArgs e)
-    {
-        // Уже в календаре
+        // Календарь не имеет специальной кнопки в шапке
+        SetHeaderButton(null);
+
+        SetPageContent(new Label
+        {
+            Text = "Календарь будет здесь...",
+            TextColor = Colors.White,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Center,
+            FontSize = 16
+        });
     }
 }
