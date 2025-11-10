@@ -5,9 +5,17 @@
         public App()
         {
             InitializeComponent();
-            MainPage = new TasksPage();
-        }
 
-        
+            if (DeviceInfo.Platform == DevicePlatform.WinUI)
+            {
+                // Для Windows
+                MainPage = new TasksPage();
+            }
+            else
+            {
+                // Для Android
+                MainPage = new AppShell();
+            }
+        }        
     }
 }

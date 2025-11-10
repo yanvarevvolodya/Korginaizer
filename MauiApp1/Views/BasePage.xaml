@@ -5,37 +5,12 @@
              x:Name="BasePageContent"
              NavigationPage.HasNavigationBar="False">
 
-    <Grid ColumnDefinitions="70, *"  
+    <Grid x:Name="MainGrid"
           RowDefinitions="Auto, *"
           RowSpacing="0">
 
-        <!-- Боковая панель (ОБЩАЯ ДЛЯ ВСЕХ) -->
-        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-              BackgroundColor="#000033"
-              ZIndex="999">
-            <StackLayout Padding="0,40,0,0">
-                <Button x:Name="TasksButton" 
-                        ImageSource="tasks_icon.png" Text="Задачи" 
-                        BackgroundColor="Transparent" TextColor="White" 
-                        HeightRequest="70"
-                        Clicked="OnTasksButtonClicked"/>
-
-                <Button x:Name="CalendarButton" 
-                        ImageSource="calendar_icon.png" Text="Календарь" 
-                        BackgroundColor="Transparent" TextColor="White" 
-                        HeightRequest="70"
-                        Clicked="OnCalendarButtonClicked"/>
-
-                <Button x:Name="SettingsButton" 
-                        ImageSource="settings_icon.png" Text="Настройки" 
-                        BackgroundColor="Transparent" TextColor="White" 
-                        HeightRequest="70"
-                        Clicked="OnSettingsButtonClicked"/>
-            </StackLayout>
-        </Grid>
-
         <!-- Шапка (ОБЩАЯ ДЛЯ ВСЕХ) -->
-        <Grid Grid.Row="0" Grid.Column="1"
+        <Grid Grid.Row="0"
               BackgroundColor="#00008B"
               HeightRequest="60">
 
@@ -59,7 +34,7 @@
         </Grid>
 
         <!-- ОБЛАСТЬ КОНТЕНТА (заполняется наследниками) -->
-        <ContentPresenter Grid.Row="1" Grid.Column="1"
+        <ContentPresenter Grid.Row="1"
                           x:Name="PageContentArea"/>
 
     </Grid>

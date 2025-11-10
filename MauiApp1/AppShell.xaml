@@ -4,22 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiApp1"
     Title="Task Planner"
-    Shell.FlyoutBehavior="Disabled"
-    Shell.CurrentItem="{x:Reference TasksItem}">
+    Shell.TabBarIsVisible="True">
 
-    <FlyoutItem Title="Главная" Icon="home.png">
-        <ShellContent ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="Задачи" Icon="tasks.png">
-        <ShellContent ContentTemplate="{DataTemplate local:TasksPage}" Route="TasksPage" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="Календарь" Icon="calendar.png">
-        <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" Route="CalendarPage" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="Настройки" Icon="settings.png">
-        <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" Route="SettingsPage" />
-    </FlyoutItem>
+    <!-- Для Android - Bottom Tabs -->
+    <TabBar>
+        <Tab Title="Задачи" Icon="tasks.png">
+            <ShellContent ContentTemplate="{DataTemplate local:TasksPage}" Route="TasksPage" />
+        </Tab>
+        <Tab Title="Календарь" Icon="calendar.png">
+            <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" Route="CalendarPage" />
+        </Tab>
+        <Tab Title="Настройки" Icon="settings.png">
+            <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" Route="SettingsPage" />
+        </Tab>
+    </TabBar>
 </Shell>
