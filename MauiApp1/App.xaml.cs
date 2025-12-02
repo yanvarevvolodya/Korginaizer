@@ -6,16 +6,22 @@
         {
             InitializeComponent();
 
-            if (DeviceInfo.Platform == DevicePlatform.WinUI)
-            {
-                // Для Windows
-                MainPage = new TasksPage();
-            }
-            else
-            {
-                // Для Android
-                MainPage = new AppShell();
-            }
-        }        
+
+            //if (DeviceInfo.Platform == DevicePlatform.WinUI)
+            //{
+            //    // Для Windows
+            //    MainPage = new AppShell();
+            //}
+            //else
+            //{
+            //    // Для Android
+            //    MainPage = new AppShell();
+            //}
+        }
+
+        protected override Window CreateWindow(IActivationState? activationState)
+        {
+            return new Window(new AppShell());
+        }
     }
 }

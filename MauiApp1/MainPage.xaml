@@ -3,81 +3,58 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp1.MainPage">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto, Auto, Auto, *"
+      ColumnDefinitions="70, *, Auto"
+      Padding="0"
+      RowSpacing="0"
+      ColumnSpacing="0">
 
-        <!-- Шапка -->
-        <Grid Grid.Row="0" 
-              BackgroundColor="#007ACC" 
-              HeightRequest="60">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <Grid x:Name="SidePanel" 
+          Grid.Column="0"
+          Grid.RowSpan="5"
+          ZIndex="1"
+          Background="#000033">
+            <Grid RowDefinitions="Auto, *, Auto" 
+      RowSpacing="0"
+      VerticalOptions="FillAndExpand">
 
-            <Button Grid.Column="0"
-                    Text="☰"
-                    TextColor="White"
-                    BackgroundColor="Transparent"
-                    FontSize="18"
-                    Clicked="OnMenuClicked"/>
-
-            <Label Grid.Column="1"
-                   Text="label"
-                   TextColor="White"
-                   FontSize="20"
-                   VerticalOptions="Center"
-                   HorizontalOptions="Center"/>
-
-            <!-- Добавляем после Label -->
-            <Button Grid.Column="2"
-        Text="Настройки"
-        TextColor="White"
-        BackgroundColor="Transparent"
-        FontSize="16"
-        Clicked="OnSettingsClicked"/>
-        </Grid>
-
-        <!-- Основной контент -->
-        <ScrollView Grid.Row="1">
-            <StackLayout Padding="20" Spacing="15">
-
-                <!-- Быстрое добавление задачи -->
-                <Frame BackgroundColor="#f5f5f5" >
-                    <StackLayout Spacing="10">
-                        <Label Text="Новая задача" FontSize="16" FontAttributes="Bold"/>
-                        <Entry x:Name="NewTaskEntry" 
-                               Placeholder="Что нужно сделать?"
-                               BackgroundColor="White"/>
-                        <Button Text="Добавить" 
-                                Clicked="OnAddTaskClicked"
-                                BackgroundColor="#007ACC"
-                                TextColor="White"/>
-                    </StackLayout>
-                </Frame>
-
-                <!-- Список задач -->
-                <StackLayout>
-                    <Label Text="Мои задачи" FontSize="18" FontAttributes="Bold"/>
-                    <!-- Здесь потом будет список -->
-                    <Label Text="Задачи появятся здесь..."
-                           FontSize="14"
-                           TextColor="Gray"
-                           HorizontalOptions="Center"
-                           Margin="0,20"/>
+                <!-- Верхняя группа кнопок -->
+                <StackLayout Grid.Row="0">
+                    <Button x:Name="TasksButton" 
+                Text="Задачи"
+                HeightRequest="70"
+                Clicked="TasksButton_Clicked"/>
+                    <Button x:Name="CalendarButton"
+                Text="Календарь" 
+                HeightRequest="70"
+                Clicked="CalendarButton_Clicked"/>
+                    <Button x:Name="SettingsButton"
+                Text="Настройки"
+                HeightRequest="70"
+                Clicked="SettingsButton_Clicked"/>
                 </StackLayout>
 
-            </StackLayout>
-        </ScrollView>
+                <!-- Пустое пространство посередине -->
+                <BoxView Grid.Row="1" 
+             Color="Transparent"/>
 
-        <!-- Нижнее меню (для мобильных) -->
-        <Grid Grid.Row="2" 
-              BackgroundColor="#f0f0f0"
-              HeightRequest="50"
-              IsVisible="False">
-            <!-- Пока скрываем -->
-            <!-- Сделаем позже -->
+                <!-- Нижняя кнопка (Settings внизу) -->
+                <Button Grid.Row="2"
+            x:Name="AboutAppButton"
+            Text="О приложении"
+            HeightRequest="70"
+            
+            VerticalOptions="End"/>
+
+            </Grid>
         </Grid>
+
+        <ContentView x:Name="MainFrame"
+               Grid.Column="1">
+
+        </ContentView>
+
+
 
     </Grid>
 </ContentPage>

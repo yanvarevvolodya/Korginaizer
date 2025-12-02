@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,20 +9,14 @@ namespace MauiApp1.Models
 {
     public class TaskItem
     {
+        [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public bool IsCompleted { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? DueDate { get; set; }
-        public bool IsCompleted { get; set; }
-        public Priority Priority { get; set; } = Priority.Medium;
-        public string Category { get; set; } = "Общие";
-    }
-
-    public enum Priority
-    {
-        Low,
-        Medium,
-        High
+        public int TaskListId { get; set; } // Внешний ключ к списку
+        public int Priority { get; set; } = 1; // 1-низкий, 2-средний, 3-высокий
     }
 }

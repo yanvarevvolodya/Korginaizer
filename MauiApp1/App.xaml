@@ -1,13 +1,12 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
-<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MauiApp1"
+             xmlns:converters="clr-namespace:MauiApp1.Converters"
              
              x:Class="MauiApp1.App">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary>
-                <!-- Принудительно светлая тема -->
+            <!-- Принудительно светлая тема -->
                 <Style TargetType="Label">
                     <Setter Property="TextColor" Value="Black"/>
                 </Style>
@@ -19,7 +18,11 @@
                     <Setter Property="BackgroundColor" Value="#007ACC"/>
                     <Setter Property="TextColor" Value="White"/>
                 </Style>
-            </ResourceDictionary>
+            
+
+            <converters:ColorConverter x:Key="ColorConverter" />
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

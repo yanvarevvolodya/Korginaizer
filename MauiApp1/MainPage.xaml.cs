@@ -5,27 +5,57 @@
         public MainPage()
         {
             InitializeComponent();
+
         }
 
-        private void OnMenuClicked(object sender, EventArgs e)
+        private void NavigateToPage(ContentPage page)
         {
-            // Пока просто сообщение
-            DisplayAlert("Меню", "Здесь будет боковое меню", "OK");
-        }
+            MainFrame.Content = page.Content;
 
-        private void OnAddTaskClicked(object sender, EventArgs e)
-        {
-            string taskText = NewTaskEntry.Text;
-            if (!string.IsNullOrWhiteSpace(taskText))
+            if (page.BindingContext != null)
             {
-                DisplayAlert("Успех!", $"Задача '{taskText}' добавлена!", "OK");
-                NewTaskEntry.Text = string.Empty;
+                MainFrame.BindingContext = page.BindingContext;
             }
         }
 
-        private async void OnSettingsClicked(object sender, EventArgs e)
+        private void UpdateActiveButton(string activeButton)
         {
-            await Navigation.PushAsync(new SettingsPage());
+            // Сбрасываем все кнопки
+            TasksButton.BackgroundColor = Colors.Transparent;
+            CalendarButton.BackgroundColor = Colors.Transparent;
+            SettingsButton.BackgroundColor = Colors.Transparent;
+
+            // Подсвечиваем активную
+            switch (activeButton)
+            {
+                case "Tasks":
+                    TasksButton.BackgroundColor = Color.FromArgb("#1a4d80");
+                    break;
+                case "Calendar":
+                    CalendarButton.BackgroundColor = Color.FromArgb("#1a4d80");
+                    break;
+                case "Settings":
+                    SettingsButton.BackgroundColor = Color.FromArgb("#1a4d80");
+                    break;
+            }
+        }
+
+        private void TasksButton_Clicked(object sender, EventArgs e)
+        {
+            NavigateToPage(new TasksPage());
+            UpdateActiveButton("Tasks");
+        }
+
+        private void CalendarButton_Clicked(object sender, EventArgs e)
+        {
+            NavigateToPage(new CalendarPage());
+            UpdateActiveButton("Calendar");
+        }
+
+        private void SettingsButton_Clicked(object sender, EventArgs e)
+        {
+            NavigateToPage(new SettingsPage());
+            UpdateActiveButton("Settings");
         }
     }
 }
