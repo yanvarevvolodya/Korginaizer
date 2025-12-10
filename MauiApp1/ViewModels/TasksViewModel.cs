@@ -9,8 +9,9 @@ namespace MauiApp1.ViewModels
     {
         private readonly DatabaseService _databaseService;
         private TaskList _selectedList;
-        private bool _isSidePanelVisible = true;
-        private double _sidePanelWidth = 200;
+        private bool _isSidePanelVisible = false;
+        private double _sidePanelWidth = 0;
+        private string _newTaskTitle;
 
         public ObservableCollection<TaskList> TaskLists { get; } = new();
         public ObservableCollection<TaskItem> Tasks { get; } = new();
@@ -19,20 +20,20 @@ namespace MauiApp1.ViewModels
         {
             _databaseService = databaseService;
 
-            // Команды для панели
-            ToggleSidePanelCommand = new Command(ToggleSidePanel);
+            // Команда для панели
+            ToggleSidePanelCommand = new Command(async () => await ToggleSidePanelWithAnimation());
             ShowAddListModalCommand = new Command(async () => await ShowAddListModal());
-            ShowAddTaskModalCommand = new Command(async () => await ShowAddTaskModal());
 
             // Команды для задач
-            DeleteTaskCommand = new Command<TaskItem>(async (task) => await DeleteTask(task));
-            ToggleTaskCommand = new Command<TaskItem>(async (task) => await ToggleTask(task));
+            AddTaskCommand = new Command(async () => await AddTaskAsync());
+            DeleteTaskCommand = new Command<TaskItem>(async (task) => await DeleteTaskAsync(task));
+            ToggleTaskCommand = new Command<TaskItem>(async (task) => await ToggleTaskAsync(task));
 
             // Загружаем данные
             LoadTaskLists();
         }
 
-        // СВОЙСТВА (связываются с XAML)
+        // СВОЙСТВА
         public bool IsSidePanelVisible
         {
             get => _isSidePanelVisible;
@@ -57,62 +58,70 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        // КОМАНДЫ (связываются с XAML через Command="{Binding ...}")
+        public string NewTaskTitle
+        {
+            get => _newTaskTitle;
+            set => SetProperty(ref _newTaskTitle, value);
+        }
+
+        // КОМАНДЫ
         public ICommand ToggleSidePanelCommand { get; }
         public ICommand ShowAddListModalCommand { get; }
-        public ICommand ShowAddTaskModalCommand { get; }
+        public ICommand AddTaskCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand ToggleTaskCommand { get; }
 
-        // МЕТОД ДЛЯ ПАНЕЛИ (без сложных анимаций)
-        private void ToggleSidePanel()
+        // МЕТОД ДЛЯ ПАНЕЛИ
+        private async Task ToggleSidePanelWithAnimation()
         {
-            IsSidePanelVisible = !IsSidePanelVisible;
-            SidePanelWidth = IsSidePanelVisible ? 200 : 0;
+            if (IsSidePanelVisible)
+            {
+                // Скрываем панель
+                await AnimateSidePanelWidth(200, 0);
+                IsSidePanelVisible = false;
+            }
+            else
+            {
+                // Показываем панель
+                IsSidePanelVisible = true;
+                await AnimateSidePanelWidth(0, 200);
+            }
         }
 
-        // МОДАЛЬНЫЕ ОКНА
+        private async Task AnimateSidePanelWidth(double start, double end)
+        {
+            var animation = new Animation(
+                callback: (value) => SidePanelWidth = value,
+                start: start,
+                end: end
+            );
+
+            animation.Commit(
+                owner: Application.Current.MainPage,
+                name: "SidePanelAnimation",
+                length: 250
+            );
+
+            await Task.Delay(250);
+        }
+
+        // МОДАЛЬНОЕ ОКНО ДЛЯ СОЗДАНИЯ СПИСКА
         private async Task ShowAddListModal()
         {
+            // Закрываем панель после создания
+            await ToggleSidePanelWithAnimation();
+
             string listName = await Application.Current.MainPage.DisplayPromptAsync(
                 "Новый список",
                 "Введите название списка:",
                 "Создать",
                 "Отмена",
-                "Например: Работа");
+                "Например: Работа",
+                maxLength: 50);
 
             if (!string.IsNullOrWhiteSpace(listName))
             {
                 await AddNewList(listName);
-            }
-        }
-
-        private async Task ShowAddTaskModal()
-        {
-            if (SelectedList == null)
-            {
-                await Application.Current.MainPage.DisplayAlert("Ошибка",
-                    "Сначала выберите список", "OK");
-                return;
-            }
-
-            string taskTitle = await Application.Current.MainPage.DisplayPromptAsync(
-                "Новая задача",
-                "Введите название задачи:",
-                "Добавить",
-                "Отмена",
-                "Например: Купить молоко");
-
-            if (!string.IsNullOrWhiteSpace(taskTitle))
-            {
-                string taskDescription = await Application.Current.MainPage.DisplayPromptAsync(
-                    "Описание задачи",
-                    "Введите описание (необязательно):",
-                    "Добавить",
-                    "Пропустить",
-                    "Например: Молоко 2,5%");
-
-                await AddNewTask(taskTitle, taskDescription);
             }
         }
 
@@ -126,9 +135,6 @@ namespace MauiApp1.ViewModels
 
                 foreach (var list in lists)
                 {
-                    // Загружаем количество задач для каждого списка
-                    var tasks = await _databaseService.GetTasksByListIdAsync(list.Id);
-                    list.TaskCount = tasks.Count; // Заполняем TaskCount
                     TaskLists.Add(list);
                 }
 
@@ -152,8 +158,7 @@ namespace MauiApp1.ViewModels
                 var tasks = await _databaseService.GetTasksByListIdAsync(listId);
                 Tasks.Clear();
 
-                // Сначала невыполненные, потом выполненные
-                foreach (var task in tasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.CreatedDate))
+                foreach (var task in tasks.OrderBy(t => t.IsCompleted))
                 {
                     Tasks.Add(task);
                 }
@@ -173,13 +178,12 @@ namespace MauiApp1.ViewModels
                 {
                     Name = name.Trim(),
                     Description = "Новый список задач",
-                    Color = GetRandomColor(),
-                    TaskCount = 0
+                    Color = "#3A2C6B" // Фиксированный цвет
                 };
 
                 await _databaseService.SaveTaskListAsync(newList);
                 TaskLists.Add(newList);
-                SelectedList = newList;
+                SelectedList = newList; // Автоматически выбираем новый список
             }
             catch (Exception ex)
             {
@@ -188,29 +192,27 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        private async Task AddNewTask(string title, string description = null)
+        private async Task AddTaskAsync()
         {
+            if (string.IsNullOrWhiteSpace(NewTaskTitle) || SelectedList == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Внимание",
+                    "Сначала выберите список задач", "OK");
+                return;
+            }
+
             try
             {
                 var newTask = new TaskItem
                 {
-                    Title = title.Trim(),
-                    Description = description?.Trim(),
+                    Title = NewTaskTitle.Trim(),
                     TaskListId = SelectedList.Id,
                     CreatedDate = DateTime.Now
                 };
 
                 await _databaseService.SaveTaskAsync(newTask);
-
-                // Увеличиваем счетчик задач в списке
-                SelectedList.TaskCount++;
-
-                // Обновляем отображение списка
-                var index = TaskLists.IndexOf(SelectedList);
-                TaskLists[index] = SelectedList; // Запустит обновление
-
-                // Добавляем задачу в список
-                Tasks.Add(newTask);
+                NewTaskTitle = string.Empty;
+                LoadTasks(SelectedList.Id);
             }
             catch (Exception ex)
             {
@@ -219,7 +221,7 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        private async Task DeleteTask(TaskItem task)
+        private async Task DeleteTaskAsync(TaskItem task)
         {
             bool confirm = await Application.Current.MainPage.DisplayAlert(
                 "Удаление",
@@ -231,15 +233,6 @@ namespace MauiApp1.ViewModels
                 try
                 {
                     await _databaseService.DeleteTaskAsync(task);
-
-                    // Уменьшаем счетчик задач в списке
-                    if (SelectedList != null)
-                    {
-                        SelectedList.TaskCount--;
-                        var index = TaskLists.IndexOf(SelectedList);
-                        TaskLists[index] = SelectedList;
-                    }
-
                     Tasks.Remove(task);
                 }
                 catch (Exception ex)
@@ -250,7 +243,7 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        private async Task ToggleTask(TaskItem task)
+        private async Task ToggleTaskAsync(TaskItem task)
         {
             try
             {
@@ -260,27 +253,13 @@ namespace MauiApp1.ViewModels
                 // Обновляем отображение
                 var index = Tasks.IndexOf(task);
                 Tasks.RemoveAt(index);
-
-                if (task.IsCompleted)
-                    Tasks.Add(task); // Выполненные - в конец
-                else
-                    Tasks.Insert(0, task); // Невыполненные - в начало
+                Tasks.Insert(0, task); // Перемещаем в начало
             }
             catch (Exception ex)
             {
                 await Application.Current.MainPage.DisplayAlert("Ошибка",
                     $"Не удалось обновить задачу: {ex.Message}", "OK");
             }
-        }
-
-        private string GetRandomColor()
-        {
-            var colors = new[]
-            {
-                "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7",
-                "#DDA0DD", "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9"
-            };
-            return colors[new Random().Next(colors.Length)];
         }
     }
 }

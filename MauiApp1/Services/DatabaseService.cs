@@ -41,6 +41,9 @@ namespace MauiApp1.Services
                     // Создаем таблицы
                     await _database.CreateTableAsync<TaskList>();
                     await _database.CreateTableAsync<TaskItem>();
+                    await _database.CreateTableAsync<CalendarEvent>();
+
+                    Debug.WriteLine($"Таблица CalendarEvent создана. Путь к БД: {dbPath}");
 
                     // Добавляем тестовые данные, если база пустая
                     await SeedDataAsync();
@@ -166,5 +169,135 @@ namespace MauiApp1.Services
                 return 0;
             }
         }
+
+        // Методы для CalendarEvent
+        public async Task<List<CalendarEvent>> GetCalendarEventsAsync(DateTime date)
+        {
+            try
+            {
+                Debug.WriteLine($"Запрос событий на дату: {date:yyyy-MM-dd}");
+
+                // Получаем ВСЕ события
+                var allEvents = await _database.Table<CalendarEvent>().ToListAsync();
+                Debug.WriteLine($"Всего событий в БД: {allEvents.Count}");
+
+                // Фильтруем вручную
+                var eventsForDate = new List<CalendarEvent>();
+                foreach (var ev in allEvents)
+                {
+                    Debug.WriteLine($"Событие: ID={ev.Id}, Title='{ev.Title}', Date={ev.EventDate:yyyy-MM-dd}, Ticks={ev.EventDate.Ticks}");
+
+                    // Сравниваем даты (только день, месяц, год)
+                    if (ev.EventDate.Date == date.Date)
+                    {
+                        eventsForDate.Add(ev);
+                        Debug.WriteLine($"  -> Подходит для {date:yyyy-MM-dd}");
+                    }
+                }
+
+                Debug.WriteLine($"Найдено событий для {date:yyyy-MM-dd}: {eventsForDate.Count}");
+                return eventsForDate;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения событий: {ex.Message}");
+                return new List<CalendarEvent>();
+            }
+        }
+
+        public async Task<List<CalendarEvent>> GetCalendarEventsByMonthAsync(int year, int month)
+        {
+            try
+            {
+                Debug.WriteLine($"Запрос событий за месяц: {year}-{month}");
+
+                var allEvents = await _database.Table<CalendarEvent>().ToListAsync();
+                var startDate = new DateTime(year, month, 1);
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                Debug.WriteLine($"Диапазон: {startDate:yyyy-MM-dd} - {endDate:yyyy-MM-dd}");
+
+                var monthEvents = new List<CalendarEvent>();
+                foreach (var ev in allEvents)
+                {
+                    if (ev.EventDate >= startDate && ev.EventDate <= endDate)
+                    {
+                        monthEvents.Add(ev);
+                        Debug.WriteLine($"  Событие: {ev.Title} на {ev.EventDate:yyyy-MM-dd}");
+                    }
+                }
+
+                Debug.WriteLine($"Всего событий за месяц: {monthEvents.Count}");
+                return monthEvents;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения событий месяца: {ex.Message}");
+                return new List<CalendarEvent>();
+            }
+        }
+
+        public async Task<int> SaveCalendarEventAsync(CalendarEvent calendarEvent)
+        {
+            try
+            {
+                Debug.WriteLine($"Сохранение события: {calendarEvent.Title}");
+                Debug.WriteLine($"  Дата события: {calendarEvent.EventDate:yyyy-MM-dd HH:mm:ss}");
+                Debug.WriteLine($"  Ticks: {calendarEvent.EventDate.Ticks}");
+                Debug.WriteLine($"  CreatedDate: {calendarEvent.CreatedDate:yyyy-MM-dd HH:mm:ss}");
+
+                if (calendarEvent.Id != 0)
+                {
+                    var result = await _database.UpdateAsync(calendarEvent);
+                    Debug.WriteLine($"  Обновлено, результат: {result}");
+                    return result;
+                }
+                else
+                {
+                    var result = await _database.InsertAsync(calendarEvent);
+                    Debug.WriteLine($"  Добавлено, ID: {calendarEvent.Id}, результат: {result}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка сохранения события: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public async Task<int> DeleteCalendarEventAsync(CalendarEvent calendarEvent)
+        {
+            try
+            {
+                return await _database.DeleteAsync(calendarEvent);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка удаления события: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public async Task DebugCalendarEventsAsync()
+        {
+            try
+            {
+                var events = await _database.Table<CalendarEvent>().ToListAsync();
+                Debug.WriteLine($"Всего событий в БД: {events.Count}");
+
+                foreach (var ev in events)
+                {
+                    Debug.WriteLine($"Событие: ID={ev.Id}, Title='{ev.Title}', Date={ev.EventDate:dd.MM.yyyy}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка отладки: {ex.Message}");
+            }
+        }
+
+
+
     }
 }

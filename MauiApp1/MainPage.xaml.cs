@@ -6,6 +6,9 @@
         {
             InitializeComponent();
 
+            NavigateToPage(new TasksPage());
+            UpdateActiveButton("Tasks");
+
         }
 
         private void NavigateToPage(ContentPage page)

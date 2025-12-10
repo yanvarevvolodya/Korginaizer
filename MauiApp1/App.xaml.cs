@@ -6,7 +6,6 @@
         {
             InitializeComponent();
 
-
             //if (DeviceInfo.Platform == DevicePlatform.WinUI)
             //{
             //    // Для Windows

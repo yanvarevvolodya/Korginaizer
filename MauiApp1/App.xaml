@@ -6,7 +6,6 @@
              x:Class="MauiApp1.App">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Принудительно светлая тема -->
                 <Style TargetType="Label">
                     <Setter Property="TextColor" Value="Black"/>
                 </Style>
@@ -14,13 +13,13 @@
                     <Setter Property="BackgroundColor" Value="White"/>
                     <Setter Property="TextColor" Value="Black"/>
                 </Style>
-                <Style TargetType="Button">
-                    <Setter Property="BackgroundColor" Value="#007ACC"/>
-                    <Setter Property="TextColor" Value="White"/>
-                </Style>
-            
+            <Style TargetType="Button">
+                <Setter Property="BackgroundColor" Value="#007ACC"/>
+                <Setter Property="TextColor" Value="White"/>
+            </Style>
 
-            <converters:ColorConverter x:Key="ColorConverter" />
+            <converters:BoolToBoldConverter x:Key="BoolToBoldConverter" />
+            <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
 
         </ResourceDictionary>
