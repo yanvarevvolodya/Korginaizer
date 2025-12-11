@@ -65,10 +65,21 @@ namespace MauiApp1.Models
         {
             get
             {
-                if (!IsCurrentMonth) return Color.FromArgb("#AAAAAA");
-                if (IsToday) return Colors.White;
-                if (IsWeekend) return Color.FromArgb("#DC3545");
-                return Colors.Black;
+                if (!IsCurrentMonth)
+                    return Application.Current.RequestedTheme == AppTheme.Dark
+                        ? Color.FromArgb("#666666")  // Серый для тёмной темы
+                        : Color.FromArgb("#AAAAAA"); // Серый для светлой темы
+
+                if (IsToday)
+                    return Colors.White; // Белый для сегодняшнего дня (не зависит от темы)
+
+                if (IsWeekend)
+                    return Color.FromArgb("#DC3545"); // Красный для выходных (не зависит от темы)
+
+                // Для обычных дней - разный цвет в зависимости от темы
+                return Application.Current.RequestedTheme == AppTheme.Dark
+                    ? Colors.White
+                    : Colors.Black;
             }
         }
 
@@ -76,8 +87,14 @@ namespace MauiApp1.Models
         {
             get
             {
-                if (IsToday) return Color.FromArgb("#007ACC");
-                if (IsSelected) return Color.FromArgb("#E3F2FD");
+                if (IsToday)
+                    return Color.FromArgb("#007ACC"); // Синий для сегодняшнего дня
+
+                if (IsSelected)
+                    return Application.Current.RequestedTheme == AppTheme.Dark
+                        ? Color.FromArgb("#2A2A2A")     // Тёмно-серый для тёмной темы
+                        : Color.FromArgb("#E3F2FD");    // Светло-голубой для светлой темы
+
                 return Colors.Transparent;
             }
         }

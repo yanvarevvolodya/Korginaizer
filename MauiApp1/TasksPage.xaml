@@ -14,14 +14,17 @@
         <HorizontalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
             <Button x:Name="ToggleButton"
                     Text="☰"
-                    BackgroundColor="Transparent"     
-                    WidthRequest="60"
-                    HeightRequest="60"
+                    BackgroundColor="{AppThemeBinding Light=#f8f4ff, Dark=#212630}"
+                    Margin="10"
+                    BorderWidth="2"
+                    BorderColor="{AppThemeBinding Light=#ddeeff, Dark=#4d4d4d}"
+                    WidthRequest="50"
+                    HeightRequest="50"
                     Command="{Binding ToggleSidePanelCommand}"/>
 
             <Label Text="Задачи" 
                    Margin="25"
-                   TextColor="AliceBlue"
+                   
                    VerticalTextAlignment="Center"/>
         </HorizontalStackLayout>
 
@@ -38,7 +41,6 @@
 
                 <Label Text="{Binding SelectedList.Name, StringFormat='{0}'}"
                FontSize="16"
-               TextColor="White"
                        HorizontalTextAlignment="Center"
                IsVisible="{Binding SelectedList, Converter={StaticResource NullToBoolConverter}}"/>
             </StackLayout>
@@ -55,7 +57,6 @@
                 <Button Grid.Row="0" Grid.Column="1"
                 Text="+ Задача"
                 Command="{Binding AddTaskCommand}"
-                BackgroundColor="#28A745"
                 TextColor="White"
                 WidthRequest="80" />
             </Grid>
@@ -67,40 +68,42 @@
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="10"
+                        <Border Background="{AppThemeBinding Light=Transparent, Dark=Transparent}">
+                            <Grid Padding="10"
                               ColumnDefinitions="Auto, *, Auto"
-                              BackgroundColor="#404346"    
-                              Opacity="0.9"
+                              BackgroundColor="{AppThemeBinding Light=LightBlue, Dark=#374045}" 
                               Margin="0,2">
 
-                            <CheckBox Grid.Column="0"
+                                <CheckBox Grid.Column="0"
                                       IsChecked="{Binding IsCompleted}"
                                       VerticalOptions="Center"
                                       Color="#007ACC"
                                       CheckedChanged="OnTaskCheckedChanged" />
 
-                            <Label Grid.Column="1"
+                                <Label Grid.Column="1"
                                    Text="{Binding Title}"
                                    VerticalOptions="Center"
+                                       
                                    FontSize="16">
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label"
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
                                                  Binding="{Binding IsCompleted}"
                                                  Value="True">
-                                        <Setter Property="TextDecorations" Value="Strikethrough" />
-                                        <Setter Property="TextColor" Value="#6C757D" />
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
+                                            <Setter Property="TextDecorations" Value="Strikethrough" />
+                                            <Setter Property="TextColor" Value="#6C757D" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
 
-                            <Button Grid.Column="2"
+                                <Button Grid.Column="2"
                                     Text="✕"
                                     BackgroundColor="Transparent"
                                     TextColor="#DC3545"
                                     FontSize="12"
                                     Clicked="OnDeleteTaskClicked" />
 
-                        </Grid>
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
@@ -127,8 +130,7 @@
                 <!-- Кнопка создания списка -->
                 <Button Text="+ Создать список" 
                 HeightRequest="50"
-                BackgroundColor="#2A1376"
-                TextColor="White"
+                BackgroundColor="{AppThemeBinding Light=#dbf0ff, Dark=#2A1376}"
                 FontSize="14"
                 Command="{Binding ShowAddListModalCommand}"
                 CornerRadius="10"
@@ -142,7 +144,6 @@
 
                 <!-- Заголовок -->
                 <Label Text="Списки"
-               TextColor="White"
                FontSize="16"
                HorizontalOptions="Center"
                Margin="0,15,0,10"/>
@@ -163,7 +164,6 @@
                            CornerRadius="8">
 
                                 <Label Text="{Binding Name}"
-                               TextColor="White"
                                FontSize="14"
                                VerticalOptions="Center"/>
 

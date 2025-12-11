@@ -109,7 +109,8 @@ namespace MauiApp1.ViewModels
 
         public void GenerateCalendarDays()
         {
-            CalendarDays.Clear();
+            // Временная коллекция для новых дней
+            var newDays = new List<CalendarDay>();
 
             DateTime firstDayOfMonth = new DateTime(CurrentMonth.Year, CurrentMonth.Month, 1);
             int firstDayWeekday = (int)firstDayOfMonth.DayOfWeek;
@@ -128,11 +129,22 @@ namespace MauiApp1.ViewModels
                     EventCount = CountEventsForDate(currentDisplayDate)
                 };
 
-                CalendarDays.Add(day);
+                newDays.Add(day);
                 currentDisplayDate = currentDisplayDate.AddDays(1);
             }
 
-            Debug.WriteLine($"Сгенерировано {CalendarDays.Count} дней календаря");
+            // ВАЖНО: Полностью заменяем коллекцию
+            CalendarDays.Clear();
+
+            foreach (var day in newDays)
+            {
+                CalendarDays.Add(day);
+            }
+
+            Debug.WriteLine($"Сгенерировано {CalendarDays.Count} дней для {CurrentMonth:MMMM yyyy}");
+
+            // Явно уведомляем об изменении коллекции
+            OnPropertyChanged(nameof(CalendarDays));
         }
 
         private int CountEventsForDate(DateTime date)

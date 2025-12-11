@@ -9,10 +9,10 @@
     FlyoutBehavior="Disabled"
     Shell.TabBarIsVisible="True"
 
-    Shell.BackgroundColor="#000033"
-    Shell.ForegroundColor="White"
-    Shell.TitleColor="White"
-    Shell.UnselectedColor="#AAAAAA">
+    Shell.BackgroundColor="{AppThemeBinding Light=#e6e6fa, Dark=#000033}"
+    Shell.ForegroundColor="{AppThemeBinding Light=#bdbdf2, Dark=White}"
+    Shell.TitleColor="{AppThemeBinding Light=Black, Dark=White}"
+    Shell.UnselectedColor="{AppThemeBinding Light=#AAAAAA, Dark=#AAAAAA}">
 
     <!-- TabBar - работает на всех платформах -->
     <TabBar>
