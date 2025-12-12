@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace MauiApp1.Models
 {
@@ -16,7 +18,8 @@ namespace MauiApp1.Models
         public bool IsCompleted { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? DueDate { get; set; }
-        public int TaskListId { get; set; } // Внешний ключ к списку
-        public int Priority { get; set; } = 1; // 1-низкий, 2-средний, 3-высокий
+        public int TaskListId { get; set; }
+        public int Priority { get; set; } = 1; 
+
     }
 }

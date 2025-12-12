@@ -11,7 +11,7 @@
             </Style>
             <Style TargetType="Entry">
                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#212629}"/>
-                <Setter Property="TextColor" Value="Black"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Dark=#d7d7d7}"/>
             </Style>
             
             <Style TargetType="Button">

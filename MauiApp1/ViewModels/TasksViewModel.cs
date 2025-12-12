@@ -76,33 +76,36 @@ namespace MauiApp1.ViewModels
         {
             if (IsSidePanelVisible)
             {
-                // Скрываем панель
-                await AnimateSidePanelWidth(200, 0);
+                // Скрываем панель с анимацией
+                await AnimateSidePanelWidth(250, 0, 250); // 250ms анимация
                 IsSidePanelVisible = false;
             }
             else
             {
-                // Показываем панель
+                // Показываем панель с анимацией
                 IsSidePanelVisible = true;
-                await AnimateSidePanelWidth(0, 200);
+                await AnimateSidePanelWidth(0, 250, 250); // 250ms анимация
             }
         }
 
-        private async Task AnimateSidePanelWidth(double start, double end)
+        private async Task AnimateSidePanelWidth(double start, double end, uint length = 250)
         {
+            // Плавно меняем ширину
             var animation = new Animation(
                 callback: (value) => SidePanelWidth = value,
                 start: start,
-                end: end
+                end: end,
+                easing: Easing.CubicOut
             );
 
             animation.Commit(
                 owner: Application.Current.MainPage,
                 name: "SidePanelAnimation",
-                length: 250
+                length: length,
+                finished: (v, c) => SidePanelWidth = end
             );
 
-            await Task.Delay(250);
+            await Task.Delay((int)length);
         }
 
         // МОДАЛЬНОЕ ОКНО ДЛЯ СОЗДАНИЯ СПИСКА
