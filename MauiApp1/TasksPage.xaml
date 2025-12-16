@@ -71,7 +71,7 @@
                                           Margin="0,2">
 
                                         <CheckBox Grid.Column="0"
-                                                  IsChecked="{Binding IsCompleted, Mode=OneWay}"
+                                                  IsChecked="{Binding IsCompleted, Mode=TwoWay}"
                                                   VerticalOptions="Center"
                                                   Color="#007ACC"
                                                   CheckedChanged="OnTaskCheckedChanged" />
@@ -118,7 +118,7 @@
              ZIndex="998">
         </BoxView>
 
-        <!-- СИДЕЙШАЯ ПАНЕЛЬ - ПОВЕРХ ОСНОВНОГО КОНТЕНТА -->
+        <!-- SidePanel - ПОВЕРХ ОСНОВНОГО КОНТЕНТА -->
         <Frame x:Name="SidePanel"
                AbsoluteLayout.LayoutBounds="0,0,250,1"
                AbsoluteLayout.LayoutFlags="YProportional, HeightProportional"

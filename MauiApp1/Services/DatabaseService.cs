@@ -42,11 +42,15 @@ namespace MauiApp1.Services
                     await _database.CreateTableAsync<TaskList>();
                     await _database.CreateTableAsync<TaskItem>();
                     await _database.CreateTableAsync<CalendarEvent>();
+                    await _database.CreateTableAsync<KanbanBoard>();
+                    await _database.CreateTableAsync<KanbanColumn>();
+                    await _database.CreateTableAsync<KanbanCard>();
 
                     Debug.WriteLine($"Таблица CalendarEvent создана. Путь к БД: {dbPath}");
 
                     // Добавляем тестовые данные, если база пустая
                     await SeedDataAsync();
+                    await SeedKanbanDataAsync();
                 }
             }
             catch (Exception ex)
@@ -55,6 +59,7 @@ namespace MauiApp1.Services
             }
         }
 
+        // Test data methods
         private async Task SeedDataAsync()
         {
             var lists = await GetTaskListsAsync();
@@ -71,6 +76,77 @@ namespace MauiApp1.Services
                 foreach (var list in defaultLists)
                 {
                     await SaveTaskListAsync(list);
+                }
+            }
+        }
+
+        private async Task SeedKanbanDataAsync()
+        {
+            // Тестовые данные для канбана
+            var boards = await GetKanbanBoardsAsync();
+            if (!boards.Any())
+            {
+                var board = new KanbanBoard
+                {
+                    Name = "Проект: Разработка",
+                    Description = "Моя первая канбан-доска",
+                    Color = "#007ACC"
+                };
+
+                await SaveKanbanBoardAsync(board);
+
+                // Создаем стандартные столбцы
+                var columns = new[]
+                {
+                new KanbanColumn { Name = "📋 Запланировано", BoardId = board.Id, Position = 0 },
+                new KanbanColumn { Name = "⚡ В работе", BoardId = board.Id, Position = 1 },
+                new KanbanColumn { Name = "✅ Готово", BoardId = board.Id, Position = 2 }
+            };
+
+                foreach (var column in columns)
+                {
+                    await SaveKanbanColumnAsync(column);
+
+                    // Добавляем тестовые карточки
+                    if (column.Name == "📋 Запланировано")
+                    {
+                        var card1 = new KanbanCard
+                        {
+                            Title = "Спроектировать базу данных",
+                            Description = "Создать ER-диаграмму",
+                            ColumnId = column.Id,
+                            BoardId = board.Id,
+                            Position = 0,
+                            Color = "#FF6B6B"
+                        };
+
+                        var card2 = new KanbanCard
+                        {
+                            Title = "Создать UI дизайн",
+                            Description = "Нарисовать макеты в Figma",
+                            ColumnId = column.Id,
+                            BoardId = board.Id,
+                            Position = 1,
+                            Color = "#4ECDC4"
+                        };
+
+                        await SaveKanbanCardAsync(card1);
+                        await SaveKanbanCardAsync(card2);
+                    }
+                    else if (column.Name == "⚡ В работе")
+                    {
+                        var card = new KanbanCard
+                        {
+                            Title = "Реализовать TasksPage",
+                            Description = "Создать список задач",
+                            ColumnId = column.Id,
+                            BoardId = board.Id,
+                            Position = 0,
+                            Color = "#FFEAA7"
+                        };
+
+                        await SaveKanbanCardAsync(card);
+                    }
                 }
             }
         }
@@ -294,6 +370,214 @@ namespace MauiApp1.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"Ошибка отладки: {ex.Message}");
+            }
+        }
+
+        // Методы для Kanban
+        // Доски
+        public async Task<List<KanbanBoard>> GetKanbanBoardsAsync()
+        {
+            try
+            {
+                return await _database.Table<KanbanBoard>().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения досок: {ex.Message}");
+                return new List<KanbanBoard>();
+            }
+        }
+
+        public async Task<KanbanBoard> GetKanbanBoardAsync(int id)
+        {
+            try
+            {
+                return await _database.Table<KanbanBoard>()
+                    .FirstOrDefaultAsync(b => b.Id == id);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения доски: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<int> SaveKanbanBoardAsync(KanbanBoard board)
+        {
+            try
+            {
+                if (board.Id != 0)
+                    return await _database.UpdateAsync(board);
+                else
+                    return await _database.InsertAsync(board);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка сохранения доски: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public async Task<int> DeleteKanbanBoardAsync(KanbanBoard board)
+        {
+            try
+            {
+                // Сначала удаляем все карточки и столбцы этой доски
+                var columns = await GetColumnsByBoardIdAsync(board.Id);
+                foreach (var column in columns)
+                {
+                    await DeleteKanbanColumnAsync(column);
+                }
+
+                return await _database.DeleteAsync(board);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка удаления доски: {ex.Message}");
+                return 0;
+            }
+        }
+
+        // Столбцы
+        public async Task<List<KanbanColumn>> GetColumnsByBoardIdAsync(int boardId)
+        {
+            try
+            {
+                return await _database.Table<KanbanColumn>()
+                    .Where(c => c.BoardId == boardId)
+                    .OrderBy(c => c.Position)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения столбцов: {ex.Message}");
+                return new List<KanbanColumn>();
+            }
+        }
+
+        public async Task<KanbanColumn> GetKanbanColumnAsync(int id)
+        {
+            try
+            {
+                return await _database.Table<KanbanColumn>()
+                    .FirstOrDefaultAsync(c => c.Id == id);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения столбца: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<int> SaveKanbanColumnAsync(KanbanColumn column)
+        {
+            try
+            {
+                if (column.Id != 0)
+                    return await _database.UpdateAsync(column);
+                else
+                    return await _database.InsertAsync(column);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка сохранения столбца: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public async Task<int> DeleteKanbanColumnAsync(KanbanColumn column)
+        {
+            try
+            {
+                // Сначала удаляем все карточки этого столбца
+                var cards = await GetCardsByColumnIdAsync(column.Id);
+                foreach (var card in cards)
+                {
+                    await DeleteKanbanCardAsync(card);
+                }
+
+                return await _database.DeleteAsync(column);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка удаления столбца: {ex.Message}");
+                return 0;
+            }
+        }
+
+        // Карточки
+        public async Task<List<KanbanCard>> GetCardsByColumnIdAsync(int columnId)
+        {
+            try
+            {
+                return await _database.Table<KanbanCard>()
+                    .Where(c => c.ColumnId == columnId)
+                    .OrderBy(c => c.Position)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения карточек: {ex.Message}");
+                return new List<KanbanCard>();
+            }
+        }
+
+        public async Task<List<KanbanCard>> GetCardsByBoardIdAsync(int boardId)
+        {
+            try
+            {
+                return await _database.Table<KanbanCard>()
+                    .Where(c => c.BoardId == boardId)
+                    .OrderBy(c => c.Position)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения карточек доски: {ex.Message}");
+                return new List<KanbanCard>();
+            }
+        }
+
+        public async Task<KanbanCard> GetKanbanCardAsync(int id)
+        {
+            try
+            {
+                return await _database.Table<KanbanCard>()
+                    .FirstOrDefaultAsync(c => c.Id == id);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка получения карточки: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<int> SaveKanbanCardAsync(KanbanCard card)
+        {
+            try
+            {
+                if (card.Id != 0)
+                    return await _database.UpdateAsync(card);
+                else
+                    return await _database.InsertAsync(card);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка сохранения карточки: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public async Task<int> DeleteKanbanCardAsync(KanbanCard card)
+        {
+            try
+            {
+                return await _database.DeleteAsync(card);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка удаления карточки: {ex.Message}");
+                return 0;
             }
         }
 

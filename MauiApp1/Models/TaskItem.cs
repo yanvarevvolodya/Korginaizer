@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace MauiApp1.Models
 {
-    public class TaskItem
+    public class TaskItem 
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

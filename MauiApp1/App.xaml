@@ -19,9 +19,16 @@
                 <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}"/>
             </Style>
 
+            <!-- Стили для канбана -->
+            <Style TargetType="Frame">
+                <Setter Property="BorderColor" 
+                        Value="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"/>
+            </Style>
+
             <converters:BoolToBoldConverter x:Key="BoolToBoldConverter" />
             <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
 
         </ResourceDictionary>
     </Application.Resources>

@@ -14,7 +14,7 @@ namespace MauiApp1.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public string Color { get; set; } = "#007ACC"; // Цвет списка
+        public string Color { get; set; } = "#007ACC";
 
         [Ignore]
         public int TaskCount { get; set; } = 0;

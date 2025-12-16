@@ -14,7 +14,6 @@
     Shell.TitleColor="{AppThemeBinding Light=Black, Dark=White}"
     Shell.UnselectedColor="{AppThemeBinding Light=#AAAAAA, Dark=#AAAAAA}">
 
-    <!-- TabBar - работает на всех платформах -->
     <TabBar>
         <Tab Title="Задачи"
              Icon="tasks.png">
@@ -26,6 +25,11 @@
              Icon="calendar.png">
             <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" 
                           Route="CalendarPage" />
+        </Tab>
+
+        <Tab Title="Канбан-доски">
+            <ShellContent ContentTemplate="{DataTemplate local:KanbanPage}" 
+                  Route="KanbanPage" />
         </Tab>
 
         <Tab Title="Настройки"
