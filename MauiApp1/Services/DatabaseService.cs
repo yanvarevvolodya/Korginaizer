@@ -418,17 +418,11 @@ namespace MauiApp1.Services
             }
         }
 
+        // Метод для удаления доски
         public async Task<int> DeleteKanbanBoardAsync(KanbanBoard board)
         {
             try
             {
-                // Сначала удаляем все карточки и столбцы этой доски
-                var columns = await GetColumnsByBoardIdAsync(board.Id);
-                foreach (var column in columns)
-                {
-                    await DeleteKanbanColumnAsync(column);
-                }
-
                 return await _database.DeleteAsync(board);
             }
             catch (Exception ex)
@@ -485,17 +479,11 @@ namespace MauiApp1.Services
             }
         }
 
+        // Метод для удаления столбца
         public async Task<int> DeleteKanbanColumnAsync(KanbanColumn column)
         {
             try
             {
-                // Сначала удаляем все карточки этого столбца
-                var cards = await GetCardsByColumnIdAsync(column.Id);
-                foreach (var card in cards)
-                {
-                    await DeleteKanbanCardAsync(card);
-                }
-
                 return await _database.DeleteAsync(column);
             }
             catch (Exception ex)
@@ -580,8 +568,5 @@ namespace MauiApp1.Services
                 return 0;
             }
         }
-
-
-
     }
 }

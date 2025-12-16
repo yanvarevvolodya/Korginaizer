@@ -23,7 +23,9 @@ namespace MauiApp1.ViewModels
 
             // Команды
             AddBoardCommand = new Command(async () => await AddBoardAsync());
+            DeleteBoardCommand = new Command<KanbanBoard>(async (board) => await DeleteBoardAsync(board));
             AddColumnCommand = new Command(async () => await AddColumnAsync());
+            DeleteColumnCommand = new Command<KanbanColumn>(async (column) => await DeleteColumnAsync(column));
             AddCardCommand = new Command<KanbanColumn>(async (column) => await AddCardAsync(column));
             DeleteCardCommand = new Command<KanbanCard>(async (card) => await DeleteCardAsync(card));
 
@@ -45,7 +47,9 @@ namespace MauiApp1.ViewModels
         }
 
         public ICommand AddBoardCommand { get; }
+        public ICommand DeleteBoardCommand { get; }
         public ICommand AddColumnCommand { get; }
+        public ICommand DeleteColumnCommand { get; }
         public ICommand AddCardCommand { get; }
         public ICommand DeleteCardCommand { get; }
 
@@ -219,7 +223,7 @@ namespace MauiApp1.ViewModels
 
         private async Task AddCardAsync(KanbanColumn column)
         {
-            if (SelectedBoard == null) return;
+            if (SelectedBoard == null || column == null) return;
 
             string title = await Application.Current.MainPage.DisplayPromptAsync(
                 "Новая карточка",
@@ -244,7 +248,7 @@ namespace MauiApp1.ViewModels
                     ColumnId = column.Id,
                     BoardId = SelectedBoard.Id,
                     Position = column.Cards.Count,
-                    Color = GetRandomColor() // Добавляем цвет
+                    Color = GetRandomColor()
                 };
 
                 await _databaseService.SaveKanbanCardAsync(card);
@@ -299,6 +303,107 @@ namespace MauiApp1.ViewModels
 
             var random = new Random();
             return colors[random.Next(colors.Length)];
+        }
+
+        private async Task DeleteBoardAsync(KanbanBoard board)
+        {
+            if (board == null) return;
+
+            bool confirm = await Application.Current.MainPage.DisplayAlert(
+                "Удаление доски",
+                $"Удалить доску '{board.Name}' и все её столбцы с карточками?",
+                "Да, удалить",
+                "Отмена");
+
+            if (confirm)
+            {
+                try
+                {
+                    // Удаляем все карточки доски
+                    var columns = await _databaseService.GetColumnsByBoardIdAsync(board.Id);
+                    foreach (var column in columns)
+                    {
+                        var cards = await _databaseService.GetCardsByColumnIdAsync(column.Id);
+                        foreach (var card in cards)
+                        {
+                            await _databaseService.DeleteKanbanCardAsync(card);
+                        }
+                        await _databaseService.DeleteKanbanColumnAsync(column);
+                    }
+
+                    // Удаляем саму доску
+                    await _databaseService.DeleteKanbanBoardAsync(board);
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        Boards.Remove(board);
+
+                        // Если удалили выбранную доску, выбираем другую
+                        if (SelectedBoard?.Id == board.Id)
+                        {
+                            SelectedBoard = Boards.FirstOrDefault();
+                            if (SelectedBoard == null)
+                            {
+                                Columns.Clear();
+                            }
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Ошибка",
+                        $"Не удалось удалить доску: {ex.Message}", "OK");
+                }
+            }
+        }
+
+        private async Task DeleteColumnAsync(KanbanColumn column)
+        {
+            if (column == null || SelectedBoard == null) return;
+
+            bool confirm = await Application.Current.MainPage.DisplayAlert(
+                "Удаление столбца",
+                $"Удалить столбец '{column.Name}' и все карточки в нём?",
+                "Да, удалить",
+                "Отмена");
+
+            if (confirm)
+            {
+                try
+                {
+                    // Удаляем все карточки в столбце
+                    var cards = await _databaseService.GetCardsByColumnIdAsync(column.Id);
+                    foreach (var card in cards)
+                    {
+                        await _databaseService.DeleteKanbanCardAsync(card);
+                    }
+
+                    // Удаляем столбец
+                    await _databaseService.DeleteKanbanColumnAsync(column);
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        Columns.Remove(column);
+
+                        // Обновляем позиции оставшихся столбцов
+                        for (int i = 0; i < Columns.Count; i++)
+                        {
+                            Columns[i].Position = i;
+                        }
+                    });
+
+                    // Сохраняем новые позиции в БД
+                    foreach (var col in Columns)
+                    {
+                        await _databaseService.SaveKanbanColumnAsync(col);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Ошибка",
+                        $"Не удалось удалить столбец: {ex.Message}", "OK");
+                }
+            }
         }
     }
 }

@@ -14,15 +14,31 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Выбор доски -->
-            <Picker Grid.Column="0"
-                    ItemsSource="{Binding Boards}"
-                    SelectedItem="{Binding SelectedBoard}"
-                    ItemDisplayBinding="{Binding Name}"
-                    TextColor="{AppThemeBinding Light=Black, Dark=White}"
-                    HorizontalOptions="Start"/>
+            <!-- Выбор доски с кнопкой удаления -->
+            <Grid Grid.Column="0" ColumnDefinitions="*, Auto">
+                <Picker Grid.Column="0"
+                        ItemsSource="{Binding Boards}"
+                        SelectedItem="{Binding SelectedBoard}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                        HorizontalOptions="Start"/>
+
+                <!-- Кнопка удаления доски -->
+                <Button Grid.Column="1"
+                        Text="✕"
+                        BackgroundColor="Transparent"
+                        TextColor="#DC3545"
+                        FontSize="12"
+                        WidthRequest="30"
+                        HeightRequest="30"
+                        Margin="5,0,0,0"
+                        Command="{Binding DeleteBoardCommand}"
+                        CommandParameter="{Binding SelectedBoard}"
+                        IsEnabled="{Binding SelectedBoard, Converter={StaticResource NullToBoolConverter}}"/>
+            </Grid>
 
             <!-- Кнопка +Доска -->
             <Button Grid.Column="1"
@@ -37,8 +53,11 @@
                     CornerRadius="20"
                     Padding="15,0"
                     TextColor="White"
+                    Margin="0,0,10,0"
                     Command="{Binding AddColumnCommand}"
                     IsEnabled="{Binding SelectedBoard, Converter={StaticResource NullToBoolConverter}}"/>
+
+
         </Grid>
 
         <!-- КАНБАН ДОСКА -->
@@ -59,16 +78,16 @@
                                CornerRadius="10"
                                Padding="0">
 
-                            <Grid RowDefinitions="Auto, *, Auto"
+                            <Grid RowDefinitions="Auto, Auto, *, Auto"
                                   RowSpacing="0">
 
-                                <!-- Заголовок столбца -->
+                                <!-- Заголовок столбца с кнопкой удаления -->
                                 <Frame Grid.Row="0"
                                        BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1a237e}"
                                        CornerRadius="10"
                                        Padding="15,10">
 
-                                    <Grid ColumnDefinitions="*, Auto">
+                                    <Grid ColumnDefinitions="*, Auto, Auto">
                                         <Label Grid.Column="0"
                                                Text="{Binding Name}"
                                                FontSize="16"
@@ -78,12 +97,35 @@
                                         <Label Grid.Column="1"
                                                Text="{Binding CardCount, StringFormat='({0})'}"
                                                TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
-                                               FontSize="14"/>
+                                               FontSize="14"
+                                               Margin="10,0,0,0"/>
+
+                                        <!-- Кнопка удаления столбца -->
+                                        <Button Grid.Column="2"
+                                                Text="✕"
+                                                BackgroundColor="Transparent"
+                                                TextColor="#DC3545"
+                                                FontSize="12"
+                                                WidthRequest="30"
+                                                HeightRequest="30"
+                                                Margin="10,0,0,0"
+                                                Command="{Binding Path=BindingContext.DeleteColumnCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding .}"/>
                                     </Grid>
                                 </Frame>
 
+                                <!-- Информация о столбце -->
+                                <StackLayout Grid.Row="1"
+                                             Padding="10,5"
+                                             IsVisible="{Binding Cards.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                                    <Label Text="{Binding Cards.Count, StringFormat='Карточек: {0}'}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                                           HorizontalOptions="Center"/>
+                                </StackLayout>
+
                                 <!-- Карточки в столбце -->
-                                <CollectionView Grid.Row="1"
+                                <CollectionView Grid.Row="2"
                                                 ItemsSource="{Binding Cards}"
                                                 Margin="10"
                                                 VerticalOptions="FillAndExpand">
@@ -145,7 +187,7 @@
                                 </CollectionView>
 
                                 <!-- Кнопка добавления карточки -->
-                                <Button Grid.Row="2"
+                                <Button Grid.Row="3"
                                         Text="+ Добавить карточку"
                                         BackgroundColor="Transparent"
                                         TextColor="{AppThemeBinding Light=#007ACC, Dark=#64b5f6}"
