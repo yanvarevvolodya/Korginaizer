@@ -30,10 +30,18 @@ namespace MauiApp1.Models
 
         public int ColumnId { get; set; }
         public int BoardId { get; set; }
-        public int Position { get; set; }
+
+        // ВАЖНО: Position должно быть свойством с уведомлением!
+        private int _position;
+        public int Position
+        {
+            get => _position;
+            set => SetProperty(ref _position, value); // Используем SetProperty
+        }
+
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        private string _color = "#4ECDC4"; // Цвет по умолчанию
+        private string _color = "#4ECDC4";
         public string Color
         {
             get => _color;

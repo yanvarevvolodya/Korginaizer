@@ -498,14 +498,28 @@ namespace MauiApp1.Services
         {
             try
             {
-                return await _database.Table<KanbanCard>()
-                    .Where(c => c.ColumnId == columnId)
-                    .OrderBy(c => c.Position)
-                    .ToListAsync();
+                // Для Android используем более надежный подход
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    // Явно указываем порядок и проверяем данные
+                    var cards = await _database.Table<KanbanCard>()
+                        .Where(c => c.ColumnId == columnId)
+                        .ToListAsync();
+
+                    // Сортируем локально для надежности
+                    return cards.OrderBy(c => c.Position).ToList();
+                }
+                else
+                {
+                    return await _database.Table<KanbanCard>()
+                        .Where(c => c.ColumnId == columnId)
+                        .OrderBy(c => c.Position)
+                        .ToListAsync();
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Ошибка получения карточек: {ex.Message}");
+                Debug.WriteLine($"Ошибка получения карточек для столбца {columnId}: {ex.Message}");
                 return new List<KanbanCard>();
             }
         }
@@ -540,18 +554,35 @@ namespace MauiApp1.Services
             }
         }
 
-        public async Task<int> SaveKanbanCardAsync(KanbanCard card)
+        public async Task<int> SaveKanbanCardAsync(KanbanCard card, bool immediate = false)
         {
             try
             {
-                if (card.Id != 0)
-                    return await _database.UpdateAsync(card);
+                // Для Android используем транзакции для надежности
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    await _database.RunInTransactionAsync(conn =>
+                    {
+                        if (card.Id != 0)
+                            conn.Update(card);
+                        else
+                            conn.Insert(card);
+                    });
+
+                    Debug.WriteLine($"Сохранена карточка: ID={card.Id}, Title='{card.Title}', ColumnId={card.ColumnId}, Position={card.Position}");
+                    return 1;
+                }
                 else
-                    return await _database.InsertAsync(card);
+                {
+                    if (card.Id != 0)
+                        return await _database.UpdateAsync(card);
+                    else
+                        return await _database.InsertAsync(card);
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Ошибка сохранения карточки: {ex.Message}");
+                Debug.WriteLine($"КРИТИЧЕСКАЯ ошибка сохранения карточки: {ex.Message}");
                 return 0;
             }
         }

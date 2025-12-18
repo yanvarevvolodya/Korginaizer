@@ -15,7 +15,6 @@ namespace MauiApp1.ViewModels
 
         public ObservableCollection<KanbanBoard> Boards { get; } = new();
         public ObservableCollection<KanbanColumn> Columns { get; } = new();
-        // Убираем ObservableCollection<KanbanCard> Cards - карточки хранятся внутри столбцов
 
         public KanbanViewModel(DatabaseService databaseService)
         {
@@ -26,11 +25,19 @@ namespace MauiApp1.ViewModels
             DeleteBoardCommand = new Command<KanbanBoard>(async (board) => await DeleteBoardAsync(board));
             AddColumnCommand = new Command(async () => await AddColumnAsync());
             DeleteColumnCommand = new Command<KanbanColumn>(async (column) => await DeleteColumnAsync(column));
+
+            // Команды для управления порядком
+            MoveColumnLeftCommand = new Command<KanbanColumn>(async (column) => await MoveColumnLeftAsync(column));
+            MoveColumnRightCommand = new Command<KanbanColumn>(async (column) => await MoveColumnRightAsync(column));
+
+            // Команды для карточек
             AddCardCommand = new Command<KanbanColumn>(async (column) => await AddCardAsync(column));
             DeleteCardCommand = new Command<KanbanCard>(async (card) => await DeleteCardAsync(card));
+            MoveCardUpCommand = new Command<KanbanCard>(async (card) => await MoveCardUpAsync(card));
+            MoveCardDownCommand = new Command<KanbanCard>(async (card) => await MoveCardDownAsync(card));
+            MoveCardToColumnCommand = new Command<KanbanCard>(async (card) => await MoveCardToColumnAsync(card));
 
-            // Загружаем данные
-            Task.Run(async () => await LoadBoardsAsync());
+            LoadBoards();
         }
 
         public KanbanBoard SelectedBoard
@@ -40,8 +47,7 @@ namespace MauiApp1.ViewModels
             {
                 if (SetProperty(ref _selectedBoard, value) && value != null)
                 {
-                    // Загружаем столбцы для выбранной доски
-                    Task.Run(async () => await LoadColumnsAsync(value.Id));
+                    LoadColumns(value.Id);
                 }
             }
         }
@@ -50,29 +56,32 @@ namespace MauiApp1.ViewModels
         public ICommand DeleteBoardCommand { get; }
         public ICommand AddColumnCommand { get; }
         public ICommand DeleteColumnCommand { get; }
+        public ICommand MoveColumnLeftCommand { get; }
+        public ICommand MoveColumnRightCommand { get; }
         public ICommand AddCardCommand { get; }
         public ICommand DeleteCardCommand { get; }
+        public ICommand MoveCardUpCommand { get; }
+        public ICommand MoveCardDownCommand { get; }
+        public ICommand MoveCardToColumnCommand { get; }
 
-        private async Task LoadBoardsAsync()
+        #region Загрузка данных
+
+        private async void LoadBoards()
         {
             try
             {
                 var boards = await _databaseService.GetKanbanBoardsAsync();
 
-                // Используем MainThread для обновления UI
-                MainThread.BeginInvokeOnMainThread(() =>
+                Boards.Clear();
+                foreach (var board in boards)
                 {
-                    Boards.Clear();
-                    foreach (var board in boards)
-                    {
-                        Boards.Add(board);
-                    }
+                    Boards.Add(board);
+                }
 
-                    if (boards.Any() && SelectedBoard == null)
-                    {
-                        SelectedBoard = boards.First();
-                    }
-                });
+                if (boards.Any())
+                {
+                    SelectedBoard = boards.First();
+                }
             }
             catch (Exception ex)
             {
@@ -81,29 +90,28 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        private async Task LoadColumnsAsync(int boardId)
+        private async void LoadColumns(int boardId)
         {
             try
             {
                 var columns = await _databaseService.GetColumnsByBoardIdAsync(boardId);
 
-                MainThread.BeginInvokeOnMainThread(() =>
+                // Очищаем только если есть новые данные
+                if (columns.Any())
                 {
                     Columns.Clear();
 
                     foreach (var column in columns.OrderBy(c => c.Position))
                     {
-                        // Загружаем карточки для каждого столбца
-                        Task.Run(async () => await LoadCardsForColumnAsync(column));
                         Columns.Add(column);
+                        await LoadCardsForColumn(column);
                     }
-
-                    // Если столбцов нет, создаём стандартные
-                    if (!columns.Any())
-                    {
-                        Task.Run(async () => await CreateDefaultColumnsAsync(boardId));
-                    }
-                });
+                }
+                else if (!Columns.Any())
+                {
+                    // Если нет столбцов в БД и в текущей коллекции
+                    await CreateDefaultColumns(boardId);
+                }
             }
             catch (Exception ex)
             {
@@ -112,56 +120,240 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        private async Task LoadCardsForColumnAsync(KanbanColumn column)
+        private async Task LoadCardsForColumn(KanbanColumn column)
         {
             try
             {
                 var cards = await _databaseService.GetCardsByColumnIdAsync(column.Id);
 
-                MainThread.BeginInvokeOnMainThread(() =>
+                column.Cards.Clear();
+                foreach (var card in cards.OrderBy(c => c.Position))
                 {
-                    column.Cards.Clear();
-                    foreach (var card in cards.OrderBy(c => c.Position))
-                    {
-                        column.Cards.Add(card);
-                    }
-                });
+                    column.Cards.Add(card);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка загрузки карточек для столбца {column.Name}: {ex.Message}");
+                Console.WriteLine($"Ошибка загрузки карточек: {ex.Message}");
             }
         }
 
-        private async Task CreateDefaultColumnsAsync(int boardId)
+        #endregion
+
+        #region Методы перемещения (ОПТИМИЗИРОВАННЫЕ)
+
+        private async Task MoveColumnLeftAsync(KanbanColumn column)
+        {
+            if (column == null || column.Position <= 0) return;
+
+            try
+            {
+                var leftColumn = Columns.FirstOrDefault(c => c.Position == column.Position - 1);
+                if (leftColumn == null) return;
+
+                column.Position--;
+                leftColumn.Position++;
+
+                // ИСПРАВЛЕНО: Используем Move вместо Clear/Add
+                var indexFrom = Columns.IndexOf(column);
+                var indexTo = Columns.IndexOf(leftColumn);
+                Columns.Move(indexFrom, indexTo);
+
+                await _databaseService.SaveKanbanColumnAsync(column);
+                await _databaseService.SaveKanbanColumnAsync(leftColumn);
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось переместить столбец: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task MoveColumnRightAsync(KanbanColumn column)
+        {
+            if (column == null) return;
+
+            try
+            {
+                var rightColumn = Columns.FirstOrDefault(c => c.Position == column.Position + 1);
+                if (rightColumn == null) return;
+
+                column.Position++;
+                rightColumn.Position--;
+
+                // ИСПРАВЛЕНО: Используем Move вместо Clear/Add
+                var indexFrom = Columns.IndexOf(column);
+                var indexTo = Columns.IndexOf(rightColumn);
+                Columns.Move(indexFrom, indexTo);
+
+                await _databaseService.SaveKanbanColumnAsync(column);
+                await _databaseService.SaveKanbanColumnAsync(rightColumn);
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось переместить столбец: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task MoveCardUpAsync(KanbanCard card)
+        {
+            if (card == null) return;
+
+            try
+            {
+                var column = Columns.FirstOrDefault(c => c.Id == card.ColumnId);
+                if (column == null || card.Position <= 0) return;
+
+                var cardAbove = column.Cards.FirstOrDefault(c => c.Position == card.Position - 1);
+                if (cardAbove == null) return;
+
+                // ИЗМЕНЕНИЕ 1: Делаем обновление на фоновом потоке
+                await Task.Run(() =>
+                {
+                    // Меняем позиции
+                    card.Position--;
+                    cardAbove.Position++;
+
+                    // Перемещаем в коллекции
+                    var indexFrom = column.Cards.IndexOf(card);
+                    var indexTo = column.Cards.IndexOf(cardAbove);
+
+                    // ВАЖНО: На Android Move() может блокировать UI
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        column.Cards.Move(indexFrom, indexTo);
+                    });
+                });
+
+                // ИЗМЕНЕНИЕ 2: Сохраняем в БД на фоновом потоке
+                await Task.WhenAll(
+                    Task.Run(() => _databaseService.SaveKanbanCardAsync(card)),
+                    Task.Run(() => _databaseService.SaveKanbanCardAsync(cardAbove))
+                );
+
+                Console.WriteLine("=== MoveCardUpAsync УСПЕШНО ЗАВЕРШЕНО ===");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ОШИБКА в MoveCardUpAsync: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось переместить карточку: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task MoveCardDownAsync(KanbanCard card)
+        {
+            if (card == null) return;
+
+            try
+            {
+                var column = Columns.FirstOrDefault(c => c.Id == card.ColumnId);
+                if (column == null || column.Cards.Count <= 1) return;
+
+                var maxPosition = column.Cards.Count - 1;
+                if (card.Position >= maxPosition) return;
+
+                var cardBelow = column.Cards.FirstOrDefault(c => c.Position == card.Position + 1);
+                if (cardBelow == null) return;
+
+                // Делаем на фоновом потоке
+                await Task.Run(() =>
+                {
+                    card.Position++;
+                    cardBelow.Position--;
+
+                    var indexFrom = column.Cards.IndexOf(card);
+                    var indexTo = column.Cards.IndexOf(cardBelow);
+
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        column.Cards.Move(indexFrom, indexTo);
+                    });
+                });
+
+                // Сохраняем асинхронно
+                await Task.WhenAll(
+                    Task.Run(() => _databaseService.SaveKanbanCardAsync(card)),
+                    Task.Run(() => _databaseService.SaveKanbanCardAsync(cardBelow))
+                );
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось переместить карточку: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task MoveCardToColumnAsync(KanbanCard card)
+        {
+            if (card == null || SelectedBoard == null) return;
+
+            try
+            {
+                var columnNames = Columns.Select(c => c.Name).ToList();
+                var action = await Application.Current.MainPage.DisplayActionSheet(
+                    $"Переместить карточку '{card.Title}' в:",
+                    "Отмена",
+                    null,
+                    columnNames.ToArray());
+
+                if (string.IsNullOrEmpty(action) || action == "Отмена") return;
+
+                var targetColumn = Columns.FirstOrDefault(c => c.Name == action);
+                if (targetColumn == null || targetColumn.Id == card.ColumnId) return;
+
+                var sourceColumn = Columns.FirstOrDefault(c => c.Id == card.ColumnId);
+                if (sourceColumn == null) return;
+
+                // Удаляем из текущего
+                sourceColumn.Cards.Remove(card);
+
+                // Обновляем позиции в исходном столбце
+                for (int i = 0; i < sourceColumn.Cards.Count; i++)
+                {
+                    sourceColumn.Cards[i].Position = i;
+                    await _databaseService.SaveKanbanCardAsync(sourceColumn.Cards[i]);
+                }
+
+                // Обновляем ID столбца
+                card.ColumnId = targetColumn.Id;
+                card.Position = targetColumn.Cards.Count;
+
+                // Добавляем в новый
+                targetColumn.Cards.Add(card);
+
+                // Обновляем позиции в целевом столбце
+                for (int i = 0; i < targetColumn.Cards.Count; i++)
+                {
+                    targetColumn.Cards[i].Position = i;
+                    await _databaseService.SaveKanbanCardAsync(targetColumn.Cards[i]);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось переместить карточку: {ex.Message}", "OK");
+            }
+        }
+
+        #endregion
+
+        #region Остальные методы
+
+        private async Task CreateDefaultColumns(int boardId)
         {
             var defaultColumns = new[]
             {
-                new KanbanColumn {
-                    Name = "📋 Запланировано",
-                    BoardId = boardId,
-                    Position = 0
-                },
-                new KanbanColumn {
-                    Name = "⚡ В работе",
-                    BoardId = boardId,
-                    Position = 1
-                },
-                new KanbanColumn {
-                    Name = "✅ Готово",
-                    BoardId = boardId,
-                    Position = 2
-                }
+                new KanbanColumn { Name = "📋 Запланировано", BoardId = boardId, Position = 0 },
+                new KanbanColumn { Name = "⚡ В работе", BoardId = boardId, Position = 1 },
+                new KanbanColumn { Name = "✅ Готово", BoardId = boardId, Position = 2 }
             };
 
             foreach (var column in defaultColumns)
             {
                 await _databaseService.SaveKanbanColumnAsync(column);
-
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Columns.Add(column);
-                });
+                Columns.Add(column);
             }
         }
 
@@ -183,12 +375,8 @@ namespace MauiApp1.ViewModels
                 };
 
                 await _databaseService.SaveKanbanBoardAsync(board);
-
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Boards.Add(board);
-                    SelectedBoard = board;
-                });
+                Boards.Add(board);
+                SelectedBoard = board;
             }
         }
 
@@ -213,11 +401,7 @@ namespace MauiApp1.ViewModels
                 };
 
                 await _databaseService.SaveKanbanColumnAsync(column);
-
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Columns.Add(column);
-                });
+                Columns.Add(column);
             }
         }
 
@@ -252,11 +436,7 @@ namespace MauiApp1.ViewModels
                 };
 
                 await _databaseService.SaveKanbanCardAsync(card);
-
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    column.Cards.Add(card);
-                });
+                column.Cards.Add(card);
             }
         }
 
@@ -271,38 +451,23 @@ namespace MauiApp1.ViewModels
             {
                 await _databaseService.DeleteKanbanCardAsync(card);
 
-                // Находим столбец, содержащий эту карточку
                 var column = Columns.FirstOrDefault(c => c.Id == card.ColumnId);
                 if (column != null)
                 {
-                    MainThread.BeginInvokeOnMainThread(() =>
+                    var cardToRemove = column.Cards.FirstOrDefault(c => c.Id == card.Id);
+                    if (cardToRemove != null)
                     {
-                        var cardToRemove = column.Cards.FirstOrDefault(c => c.Id == card.Id);
-                        if (cardToRemove != null)
+                        column.Cards.Remove(cardToRemove);
+
+                        // Обновляем позиции
+                        for (int i = 0; i < column.Cards.Count; i++)
                         {
-                            column.Cards.Remove(cardToRemove);
+                            column.Cards[i].Position = i;
+                            await _databaseService.SaveKanbanCardAsync(column.Cards[i]);
                         }
-                    });
+                    }
                 }
             }
-        }
-
-        // Метод для получения случайного цвета
-        private string GetRandomColor()
-        {
-            var colors = new[]
-            {
-                "#FF6B6B", // Красный
-                "#4ECDC4", // Бирюзовый
-                "#45B7D1", // Голубой
-                "#96CEB4", // Зеленый
-                "#FFEAA7", // Желтый
-                "#DDA0DD", // Фиолетовый
-                "#FFA07A"  // Оранжевый
-            };
-
-            var random = new Random();
-            return colors[random.Next(colors.Length)];
         }
 
         private async Task DeleteBoardAsync(KanbanBoard board)
@@ -319,7 +484,6 @@ namespace MauiApp1.ViewModels
             {
                 try
                 {
-                    // Удаляем все карточки доски
                     var columns = await _databaseService.GetColumnsByBoardIdAsync(board.Id);
                     foreach (var column in columns)
                     {
@@ -331,23 +495,18 @@ namespace MauiApp1.ViewModels
                         await _databaseService.DeleteKanbanColumnAsync(column);
                     }
 
-                    // Удаляем саму доску
                     await _databaseService.DeleteKanbanBoardAsync(board);
 
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        Boards.Remove(board);
+                    Boards.Remove(board);
 
-                        // Если удалили выбранную доску, выбираем другую
-                        if (SelectedBoard?.Id == board.Id)
+                    if (SelectedBoard?.Id == board.Id)
+                    {
+                        SelectedBoard = Boards.FirstOrDefault();
+                        if (SelectedBoard == null)
                         {
-                            SelectedBoard = Boards.FirstOrDefault();
-                            if (SelectedBoard == null)
-                            {
-                                Columns.Clear();
-                            }
+                            Columns.Clear();
                         }
-                    });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -371,31 +530,24 @@ namespace MauiApp1.ViewModels
             {
                 try
                 {
-                    // Удаляем все карточки в столбце
                     var cards = await _databaseService.GetCardsByColumnIdAsync(column.Id);
                     foreach (var card in cards)
                     {
                         await _databaseService.DeleteKanbanCardAsync(card);
                     }
 
-                    // Удаляем столбец
                     await _databaseService.DeleteKanbanColumnAsync(column);
 
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        Columns.Remove(column);
+                    Columns.Remove(column);
 
-                        // Обновляем позиции оставшихся столбцов
-                        for (int i = 0; i < Columns.Count; i++)
+                    // Обновляем позиции оставшихся столбцов
+                    for (int i = 0; i < Columns.Count; i++)
+                    {
+                        if (Columns[i].Position != i)
                         {
                             Columns[i].Position = i;
+                            await _databaseService.SaveKanbanColumnAsync(Columns[i]);
                         }
-                    });
-
-                    // Сохраняем новые позиции в БД
-                    foreach (var col in Columns)
-                    {
-                        await _databaseService.SaveKanbanColumnAsync(col);
                     }
                 }
                 catch (Exception ex)
@@ -405,5 +557,18 @@ namespace MauiApp1.ViewModels
                 }
             }
         }
+
+        private string GetRandomColor()
+        {
+            var colors = new[]
+            {
+                "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
+                "#FFEAA7", "#DDA0DD", "#FFA07A"
+            };
+
+            return colors[new Random().Next(colors.Length)];
+        }
+
+        #endregion
     }
 }

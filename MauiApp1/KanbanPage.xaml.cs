@@ -1,5 +1,8 @@
 using MauiApp1.Services;
 using MauiApp1.ViewModels;
+using MauiApp1.Models;
+using System.Diagnostics;
+using MauiApp1.Extensions;
 
 namespace MauiApp1
 {
@@ -20,5 +23,6 @@ namespace MauiApp1
                 DisplayAlert("Ошибка", $"Не удалось загрузить страницу: {ex.Message}", "OK");
             }
         }
+
     }
 }
