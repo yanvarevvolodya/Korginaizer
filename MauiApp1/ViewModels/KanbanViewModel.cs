@@ -346,9 +346,9 @@ namespace MauiApp1.ViewModels
         {
             var defaultColumns = new[]
             {
-                new KanbanColumn { Name = "📋 Запланировано", BoardId = boardId, Position = 0 },
-                new KanbanColumn { Name = "⚡ В работе", BoardId = boardId, Position = 1 },
-                new KanbanColumn { Name = "✅ Готово", BoardId = boardId, Position = 2 }
+                new KanbanColumn { Name = "Запланировано", BoardId = boardId, Position = 0 },
+                new KanbanColumn { Name = "В работе", BoardId = boardId, Position = 1 },
+                new KanbanColumn { Name = "Готово", BoardId = boardId, Position = 2 }
             };
 
             foreach (var column in defaultColumns)

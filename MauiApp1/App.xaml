@@ -44,6 +44,7 @@
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
             <converters:LessThanMaxConverter x:Key="LessThanMaxConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
 
         </ResourceDictionary>
     </Application.Resources>

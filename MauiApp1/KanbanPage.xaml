@@ -27,12 +27,12 @@
                         HorizontalOptions="Start"/>
 
                 <Button Grid.Column="1"
-                        Text="✕"
+                        ImageSource="delete_red.png"
+                        FontSize="{OnPlatform WinUI=12}"
+                        WidthRequest="56"
+                        HeightRequest="50"
+                        BorderColor="Transparent"
                         BackgroundColor="Transparent"
-                        TextColor="#DC3545"
-                        FontSize="12"
-                        WidthRequest="34"
-                        HeightRequest="30"
                         Margin="5,0,0,0"
                         Command="{Binding DeleteBoardCommand}"
                         CommandParameter="{Binding SelectedBoard}"
@@ -40,13 +40,19 @@
             </Grid>
 
             <Button Grid.Column="1"
-                    Text="+ Доска"
+                    ImageSource="{AppThemeBinding Light=add_ad_blue.png, Dark=add_ad_white.png}"
+                    WidthRequest="60"
+                    HeightRequest="50"
+                    
+                    BorderColor="Transparent"
                     BackgroundColor="Transparent"
+                    TextColor="White"
                     Margin="0,0,10,0"
                     Command="{Binding AddBoardCommand}"/>
 
             <Button Grid.Column="2"
-                    Text="+ Столбец"
+                    ImageSource="add_column_white.png"
+                    
                     CornerRadius="20"
                     Padding="15,0"
                     TextColor="White"
@@ -85,17 +91,16 @@
                                    BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1a237e}"
                                    CornerRadius="10"
                                    Padding="10"
-                                   HeightRequest="50">
+                                   HeightRequest="60">
 
                                 <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto">
                                     <!-- Кнопка перемещения влево -->
                                     <Button Grid.Column="0"
-                                            Text="←"
+                                            ImageSource="{AppThemeBinding Light=left_blue.png, Dark=left_white.png}"
                                             BackgroundColor="Transparent"
-                                            TextColor="{AppThemeBinding Light=#007ACC, Dark=White}"
-                                            FontSize="12"
-                                            WidthRequest="34"
-                                            HeightRequest="30"
+                                            BorderColor="Transparent"
+                                            WidthRequest="56"
+                                            HeightRequest="50"
                                             Command="{Binding Path=BindingContext.MoveColumnLeftCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                             CommandParameter="{Binding .}"
                                             IsEnabled="{Binding Position, Converter={StaticResource GreaterThanZeroConverter}}"/>
@@ -109,34 +114,28 @@
                                            HorizontalOptions="Center"
                                            VerticalOptions="Center"/>
 
-                                    <!-- Счетчик -->
-                                    <Label Grid.Column="2"
-                                           Text="{Binding CardCount, StringFormat='({0})'}"
-                                           TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
-                                           FontSize="14"
-                                           Margin="10,0,0,0"
-                                           VerticalOptions="Center"/>
+                                
                                     
                                     <!-- Кнопка удаления -->
-                                    <Button Grid.Column="3"
-                                            Text="✕"
+                                    <Button Grid.Column="2"
                                             BackgroundColor="Transparent"
-                                            TextColor="#DC3545"
-                                            FontSize="12"
-                                            WidthRequest="34"
-                                            HeightRequest="30"
+                                            ImageSource="delete_red.png"
+                                            FontSize="{OnPlatform WinUI=12}"
+                                            WidthRequest="56"
+                                            HeightRequest="50"
+                                            BorderColor="Transparent"
                                             Margin="10,0,0,0"
                                             Command="{Binding Path=BindingContext.DeleteColumnCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                             CommandParameter="{Binding .}"/>
 
                                     <!-- Кнопка перемещения вправо -->
-                                    <Button Grid.Column="4"
-                                            Text="→"
+                                    <Button Grid.Column="3"
+                                            ImageSource="{AppThemeBinding Light=right_blue.png, Dark=right_white.png}"
                                             BackgroundColor="Transparent"
-                                            TextColor="{AppThemeBinding Light=#007ACC, Dark=White}"
-                                            FontSize="12"
-                                            WidthRequest="34"
-                                            HeightRequest="30"
+                                            WidthRequest="56"
+                                            HeightRequest="50"
+ 
+                                            BorderColor="Transparent"
                                             Margin="10,0,0,0"
                                             Command="{Binding Path=BindingContext.MoveColumnRightCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                             CommandParameter="{Binding .}"
@@ -266,6 +265,7 @@
                                     BorderWidth="1"
                                     HeightRequest="45"
                                     WidthRequest="45"
+                                    FontSize="{OnPlatform WinUI=18, Android=18}"
                                     HorizontalOptions="Center"
                                     Command="{Binding Path=BindingContext.AddCardCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                     CommandParameter="{Binding .}"/>

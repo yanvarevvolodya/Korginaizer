@@ -45,10 +45,10 @@
               ColumnSpacing="5">
             <Label Grid.Column="0" Text="Пн" FontAttributes="Bold" HorizontalOptions="Center"/>
             <Label Grid.Column="1" Text="Вт" FontAttributes="Bold" HorizontalOptions="Center"/>
-            <Label Grid.Column="2" Text="Сб" FontAttributes="Bold" HorizontalOptions="Center"/>
-            <Label Grid.Column="3" Text="Ср" FontAttributes="Bold" HorizontalOptions="Center"/>
-            <Label Grid.Column="4" Text="Чт" FontAttributes="Bold" HorizontalOptions="Center"/>
-            <Label Grid.Column="5" Text="Пт" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Grid.Column="2" Text="Ср" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Grid.Column="3" Text="Чт" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Grid.Column="4" Text="Пт" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Grid.Column="5" Text="Сб" FontAttributes="Bold" HorizontalOptions="Center"/>
             <Label Grid.Column="6" Text="Вс" FontAttributes="Bold" HorizontalOptions="Center"/>
         </Grid>
 
@@ -124,9 +124,9 @@
                                             Text="✕"
                                             BackgroundColor="Transparent"
                                             TextColor="#FF4444"
-                                            FontSize="12"
-                                            WidthRequest="35"
-                                            HeightRequest="35"
+                                            FontSize="{OnPlatform WinUI=12}"
+                                            WidthRequest="{OnPlatform WinUI=35}"
+                                            HeightRequest="{OnPlatform WinUI=35}"
                                             CornerRadius="20"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, 
                                                              Path=BindingContext.DeleteEventCommand}"

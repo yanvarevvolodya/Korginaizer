@@ -16,24 +16,25 @@
 
     <TabBar>
         <Tab Title="Задачи"
-             Icon="tasks.png">
+             Icon="tasks_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:TasksPage}" 
                           Route="TasksPage" />
         </Tab>
 
         <Tab Title="Календарь"
-             Icon="calendar.png">
+             Icon="calendar_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" 
                           Route="CalendarPage" />
         </Tab>
 
-        <Tab Title="Канбан-доски">
+        <Tab Title="Канбан-доски"
+             Icon="kanban_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:KanbanPage}" 
                   Route="KanbanPage" />
         </Tab>
 
         <Tab Title="Настройки"
-             Icon="settings.png">
+             Icon="settings_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" 
                           Route="SettingsPage" />
         </Tab>

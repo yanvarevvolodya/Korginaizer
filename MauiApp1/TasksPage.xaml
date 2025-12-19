@@ -16,30 +16,55 @@
               ColumnSpacing="10">
 
             <!-- Заголовок -->
-            <HorizontalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-                <Button x:Name="ToggleButton"
-                        Text="☰"
-                        BackgroundColor="{AppThemeBinding Light=#f8f4ff, Dark=#212630}"
-                        Margin="10"
-                        BorderWidth="2"
-                        BorderColor="{AppThemeBinding Light=#ddeeff, Dark=#4d4d4d}"
-                        WidthRequest="50"
-                        HeightRequest="50"
-                        Command="{Binding ToggleSidePanelCommand}"/>
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+      ColumnDefinitions="Auto, *, Auto"
+      HorizontalOptions="FillAndExpand"
+                  HeightRequest="70">
 
-                <Label Text="{Binding SelectedList.Name, StringFormat='{0}'}"
-                               FontSize="16"
-                               Margin="0"
-                               VerticalTextAlignment="Center"
-                               HorizontalTextAlignment="Center"
-                               IsVisible="{Binding SelectedList, Converter={StaticResource NullToBoolConverter}}"/>
-            </HorizontalStackLayout>
+                <!-- Кнопка меню (слева) -->
+                <Button Grid.Column="0"
+            x:Name="ToggleButton"
+            Text="☰"
+            BackgroundColor="Transparent"
+            Margin="0"
+            BorderColor="Transparent"
+            WidthRequest="50"
+            HeightRequest="50"
+            Command="{Binding ToggleSidePanelCommand}"
+            HorizontalOptions="Start"
+            VerticalOptions="Center"/>
+
+                <!-- Название списка (по центру) -->
+                <Label Grid.Column="1"
+           Text="{Binding SelectedList.Name, StringFormat='{0}'}"
+           FontSize="16"
+           VerticalOptions="Center"
+           HorizontalOptions="Center"
+           HorizontalTextAlignment="Center"
+           VerticalTextAlignment="Center"
+           IsVisible="{Binding SelectedList, Converter={StaticResource NullToBoolConverter}}"/>
+
+                <!-- Заглушка при отсутствии списка (тоже по центру) -->
+                <Label Grid.Column="1"
+           Text="Выберите список задач"
+           FontSize="16"
+           VerticalOptions="Center"
+           HorizontalOptions="Center"
+           HorizontalTextAlignment="Center"
+           VerticalTextAlignment="Center"
+           TextColor="Gray"
+           IsVisible="{Binding SelectedList, Converter={StaticResource InverseBoolConverter}}"/>
+
+                <!-- Пустая колонка справа для симметрии (опционально) -->
+                <BoxView Grid.Column="2"
+                         Color="Transparent"
+                         WidthRequest="60"/>
+
+            </Grid>
 
             <!-- Основное содержимое -->
             <ScrollView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                 <StackLayout Spacing="15" Padding="15,0,15,15">
-
-                    
 
                     <!-- Добавление новой задачи -->
                     <Grid ColumnDefinitions="*, Auto"
@@ -135,11 +160,11 @@
                 <!-- 1. Кнопка закрытия панели -->
                 <Button Grid.Row="0"
                 Text="✕"
-                FontSize="18"
+                FontSize="{OnPlatform WinUI=18}"
                 BackgroundColor="Transparent"
                 TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"
                 HorizontalOptions="End"
-                WidthRequest="40"
+                WidthRequest="{OnPlatform WinUI=40}"
                 HeightRequest="40"
                 Margin="0,0,0,10"
                 Command="{Binding ToggleSidePanelCommand}"/>
