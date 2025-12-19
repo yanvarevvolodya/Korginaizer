@@ -172,35 +172,45 @@
                            Margin="0,0,0,15"/>
 
                     <CollectionView ItemsSource="{Binding TaskLists}"
-                SelectionMode="Single"
-                SelectedItem="{Binding SelectedList}"
-                BackgroundColor="Transparent"
-                Opacity="0.9">
+                                    SelectionMode="Single"
+                                    SelectedItem="{Binding SelectedList}"
+                                    BackgroundColor="Transparent"
+                                    Opacity="0.9">
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <!-- 1. Внешний контейнер с белым фоном (для светлой темы) -->
                                 <StackLayout BackgroundColor="{AppThemeBinding Light=Transparent, Dark=#2C2C2C}">
-
-                                    <!-- 2. Внутренний контейнер с нужным отступом -->
                                     <Grid Padding="15,10" 
-                      x:Name="SelectionContainer"
-                      BackgroundColor="Transparent"
-                      Margin="0,5,0,5">
+                                          x:Name="SelectionContainer"
+                                          BackgroundColor="Transparent"
+                                          Margin="0,5,0,5"
+                                          ColumnDefinitions="*, Auto">
 
-                                        <Label Text="{Binding Name}"
-                           FontSize="14"
-                           VerticalOptions="Center"
-                           x:Name="ItemLabel"/>
+                                        <!-- Название списка -->
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Name}"
+                                               FontSize="14"
+                                               VerticalOptions="Center"
+                                               x:Name="ItemLabel"/>
+
+                                        <!-- Кнопка с тремя точками для меню -->
+                                        <Button Grid.Column="1"
+                                                Text="⋯"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                                                FontSize="16"
+                                                WidthRequest="{OnPlatform WinUI=40, Android=45}"
+                                                HeightRequest="40"
+                                                Margin="-10,0,0,0"
+                                                Command="{Binding Path=BindingContext.ShowListMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding .}"/>
 
                                     </Grid>
 
-                                    <!-- 3. VisualStateManager ВНЕ контейнера (но внутри StackLayout) -->
+                                    <!-- VisualStateManager остается без изменений -->
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroupList>
                                             <VisualStateGroup x:Name="CommonStates">
-
-                                                <!-- Нормальное состояние -->
                                                 <VisualState x:Name="Normal">
                                                     <VisualState.Setters>
                                                         <Setter TargetName="SelectionContainer" 
@@ -211,11 +221,8 @@
                                             Value="{AppThemeBinding Light=Black, Dark=White}"/>
                                                     </VisualState.Setters>
                                                 </VisualState>
-
-                                                <!-- Выбранное состояние -->
                                                 <VisualState x:Name="Selected" >
                                                     <VisualState.Setters>
-                                                        <!-- Вы можете задать ЛЮБОЙ цвет вместо оранжевого -->
                                                         <Setter TargetName="SelectionContainer" 
                                             Property="Grid.BackgroundColor" 
                                             Value="{AppThemeBinding Light=#b5ddf7, Dark=#3A2C6B}"/>
@@ -224,11 +231,9 @@
                                             Value="{AppThemeBinding Light=#0A2463, Dark=White}"/>
                                                     </VisualState.Setters>
                                                 </VisualState>
-
                                             </VisualStateGroup>
                                         </VisualStateGroupList>
                                     </VisualStateManager.VisualStateGroups>
-
                                 </StackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>

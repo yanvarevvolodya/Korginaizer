@@ -37,8 +37,13 @@ namespace MauiApp1.Models
             set => SetProperty(ref _color, value);
         }
 
+        // Свойство для отображения количества задач
         [Ignore]
         public int TaskCount { get; set; } = 0;
+
+        // Форматированное отображение (можно использовать в XAML)
+        [Ignore]
+        public string DisplayName => $"{Name} ({TaskCount})";
 
         public event PropertyChangedEventHandler PropertyChanged;
 
