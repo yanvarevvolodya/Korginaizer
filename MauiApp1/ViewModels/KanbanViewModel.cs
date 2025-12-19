@@ -94,22 +94,23 @@ namespace MauiApp1.ViewModels
         {
             try
             {
+                // ВАЖНО: Всегда очищаем столбцы при загрузке новой доски
+                Columns.Clear();
+
                 var columns = await _databaseService.GetColumnsByBoardIdAsync(boardId);
 
-                // Очищаем только если есть новые данные
+                // Если в базе есть столбцы для этой доски
                 if (columns.Any())
                 {
-                    Columns.Clear();
-
                     foreach (var column in columns.OrderBy(c => c.Position))
                     {
                         Columns.Add(column);
                         await LoadCardsForColumn(column);
                     }
                 }
-                else if (!Columns.Any())
+                else
                 {
-                    // Если нет столбцов в БД и в текущей коллекции
+                    // Если столбцов нет - создаем стандартные
                     await CreateDefaultColumns(boardId);
                 }
             }
@@ -354,6 +355,8 @@ namespace MauiApp1.ViewModels
             {
                 await _databaseService.SaveKanbanColumnAsync(column);
                 Columns.Add(column);
+                // ВАЖНО: Загружаем карточки (их нет, но это инициализирует коллекцию)
+                await LoadCardsForColumn(column);
             }
         }
 
@@ -376,7 +379,12 @@ namespace MauiApp1.ViewModels
 
                 await _databaseService.SaveKanbanBoardAsync(board);
                 Boards.Add(board);
+
+                // ВАЖНО: Устанавливаем SelectedBoard, что вызовет LoadColumns
                 SelectedBoard = board;
+
+                // Отладка
+                Console.WriteLine($"Создана новая доска: {board.Name}, ID={board.Id}");
             }
         }
 
