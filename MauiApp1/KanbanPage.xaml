@@ -163,10 +163,10 @@
                                                HasShadow="False"
                                                HeightRequest="80">
 
-                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto"
-                                                  ColumnSpacing="3">
+                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto"
+                                                  ColumnSpacing="2">
 
-                                                <!-- Кнопка вверх (только иконка) -->
+                                                <!-- Кнопка вверх -->
                                                 <Button Grid.Column="0"
                                                         Text="↑"
                                                         BackgroundColor="Transparent"
@@ -210,17 +210,28 @@
                                                         Command="{Binding Path=BindingContext.MoveCardDownCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                                         CommandParameter="{Binding .}"/>
 
-                                                <!-- Кнопка перемещения (компактная) -->
+                                                <!-- Кнопка перемещения -->
                                                 <Button Grid.Column="3"
                                                         Text="↷"
                                                         BackgroundColor="Transparent"
                                                         TextColor="White"
                                                         FontSize="11"
-                                                        WidthRequest="28"
-                                                        HeightRequest="28"
+                                                        WidthRequest="24"
+                                                        HeightRequest="24"
                                                         Padding="0"
-                                                        Margin="3,0,0,0"
                                                         Command="{Binding Path=BindingContext.MoveCardToColumnCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                        CommandParameter="{Binding .}"/>
+
+                                                <!-- Кнопка удаления -->
+                                                <Button Grid.Column="4"
+                                                        Text="✕"
+                                                        BackgroundColor="Transparent"
+                                                        TextColor="#FF4444"
+                                                        FontSize="11"
+                                                        WidthRequest="24"
+                                                        HeightRequest="24"
+                                                        Padding="0"
+                                                        Command="{Binding Path=BindingContext.DeleteCardCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                                         CommandParameter="{Binding .}"/>
                                             </Grid>
                                         </Frame>
