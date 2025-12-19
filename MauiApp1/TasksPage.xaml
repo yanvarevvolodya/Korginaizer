@@ -27,22 +27,19 @@
                         HeightRequest="50"
                         Command="{Binding ToggleSidePanelCommand}"/>
 
-                <Label Text="Задачи" 
-                       Margin="25"
-                       VerticalTextAlignment="Center"/>
+                <Label Text="{Binding SelectedList.Name, StringFormat='{0}'}"
+                               FontSize="16"
+                               Margin="0"
+                               VerticalTextAlignment="Center"
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding SelectedList, Converter={StaticResource NullToBoolConverter}}"/>
             </HorizontalStackLayout>
 
             <!-- Основное содержимое -->
             <ScrollView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                 <StackLayout Spacing="15" Padding="15,0,15,15">
 
-                    <!-- ПРИВЕТСТВИЕ И ВЫБРАННЫЙ СПИСОК -->
-                    <StackLayout Margin="0,0,0,20">
-                        <Label Text="{Binding SelectedList.Name, StringFormat='{0}'}"
-                               FontSize="16"
-                               HorizontalTextAlignment="Center"
-                               IsVisible="{Binding SelectedList, Converter={StaticResource NullToBoolConverter}}"/>
-                    </StackLayout>
+                    
 
                     <!-- Добавление новой задачи -->
                     <Grid ColumnDefinitions="*, Auto"

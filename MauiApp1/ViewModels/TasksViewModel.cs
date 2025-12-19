@@ -89,15 +89,15 @@ namespace MauiApp1.ViewModels
                 $"Список: {list.Name}",
                 "Отмена",
                 null,
-                "✏️ Переименовать",
-                "🗑️ Удалить");
+                "Переименовать",
+                "Удалить");
 
             switch (action)
             {
-                case "✏️ Переименовать":
+                case "Переименовать":
                     await RenameListAsync(list);
                     break;
-                case "🗑️ Удалить":
+                case "Удалить":
                     await DeleteListAsync(list);
                     break;
             }
@@ -144,7 +144,7 @@ namespace MauiApp1.ViewModels
             if (list == null) return;
 
             bool confirm = await Application.Current.MainPage.DisplayAlert(
-                "🗑️ Удаление списка",
+                "Удаление списка",
                 $"Вы уверены, что хотите удалить список '{list.Name}' и все задачи в нём?",
                 "Да, удалить",
                 "Отмена");
