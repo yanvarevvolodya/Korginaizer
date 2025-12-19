@@ -27,7 +27,8 @@ namespace MauiApp1.ViewModels
             // Команды для задач
             AddTaskCommand = new Command(async () => await AddTaskAsync());
             DeleteTaskCommand = new Command<TaskItem>(async (task) => await DeleteTaskAsync(task));
-            ToggleTaskCommand = new Command<TaskItem>(async (task) => await ToggleTaskAsync(task));
+            // ToggleTaskCommand = new Command<TaskItem>(async (task) => await ToggleTaskAsync(task));
+            // DeleteSelectedListCommand = new Command(async () => await DeleteSelectedListAsync());
 
             // Загружаем данные
             LoadTaskLists();
@@ -69,7 +70,8 @@ namespace MauiApp1.ViewModels
         public ICommand ShowAddListModalCommand { get; }
         public ICommand AddTaskCommand { get; }
         public ICommand DeleteTaskCommand { get; }
-        public ICommand ToggleTaskCommand { get; }
+        // public ICommand ToggleTaskCommand { get; }
+        public ICommand DeleteSelectedListCommand { get; }
 
         // МЕТОД ДЛЯ ПАНЕЛИ
         private async Task ToggleSidePanelWithAnimation()
@@ -127,6 +129,46 @@ namespace MauiApp1.ViewModels
                 await AddNewList(listName);
             }
         }
+
+        //private async Task DeleteSelectedListAsync()
+        //{
+        //    if (SelectedList == null) return;
+
+        //    bool confirm = await Application.Current.MainPage.DisplayAlert(
+        //        "🗑️ Удаление списка",
+        //        $"Вы уверены, что хотите удалить список '{SelectedList.Name}' и все задачи в нём?",
+        //        "Да, удалить",
+        //        "Отмена");
+
+        //    if (confirm)
+        //    {
+        //        try
+        //        {
+        //            await _databaseService.DeleteTaskListAsync(SelectedList);
+
+        //            // Удаляем из коллекции
+        //            TaskLists.Remove(SelectedList);
+
+        //            // Сбрасываем выбранный список
+        //            SelectedList = null;
+        //            Tasks.Clear();
+
+        //            // Выбираем первый доступный список, если есть
+        //            if (TaskLists.Any())
+        //            {
+        //                SelectedList = TaskLists.First();
+        //            }
+
+        //            await Application.Current.MainPage.DisplayAlert("Успешно",
+        //                $"Список '{SelectedList?.Name}' удален", "OK");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            await Application.Current.MainPage.DisplayAlert("Ошибка",
+        //                $"Не удалось удалить список: {ex.Message}", "OK");
+        //        }
+        //    }
+        //}
 
         // РАБОТА С ДАННЫМИ
         private async void LoadTaskLists()
@@ -246,23 +288,37 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        private async Task ToggleTaskAsync(TaskItem task)
-        {
-            try
-            {
-                task.IsCompleted = !task.IsCompleted;
-                await _databaseService.SaveTaskAsync(task);
+        //private async Task ToggleTaskAsync(TaskItem task)
+        //{
+        //    Console.WriteLine($"=== ToggleTaskAsync НАЧАЛО ===");
+        //    Console.WriteLine($"Задача: {task.Title}, IsCompleted до: {task.IsCompleted}");
 
-                // Обновляем отображение
-                var index = Tasks.IndexOf(task);
-                Tasks.RemoveAt(index);
-                Tasks.Insert(0, task); // Перемещаем в начало
-            }
-            catch (Exception ex)
-            {
-                await Application.Current.MainPage.DisplayAlert("Ошибка",
-                    $"Не удалось обновить задачу: {ex.Message}", "OK");
-            }
-        }
+        //    if (task == null)
+        //    {
+        //        Console.WriteLine("Задача null - выход");
+        //        return;
+        //    }
+
+        //    try
+        //    {
+        //        // Инвертируем
+        //        task.IsCompleted = !task.IsCompleted;
+        //        Console.WriteLine($"IsCompleted после инвертирования: {task.IsCompleted}");
+
+        //        // Сохраняем
+        //        var result = await _databaseService.SaveTaskAsync(task);
+        //        Console.WriteLine($"Сохранено в БД, результат: {result}");
+
+        //        // НЕ делаем ничего с коллекцией
+        //        Console.WriteLine($"=== ToggleTaskAsync УСПЕШНО ЗАВЕРШЕНО ===");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"ОШИБКА: {ex.Message}");
+        //        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        //        await Application.Current.MainPage.DisplayAlert("Ошибка",
+        //            $"Не удалось обновить задачу: {ex.Message}", "OK");
+        //    }
+        //}
     }
 }

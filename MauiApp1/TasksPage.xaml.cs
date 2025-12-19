@@ -96,18 +96,19 @@ namespace MauiApp1
             }
         }
 
-        private void OnTaskCheckedChanged(object sender, CheckedChangedEventArgs e)
-        {
-            if (sender is CheckBox checkBox && checkBox.BindingContext is TaskItem task)
-            {
-                if (BindingContext is TasksViewModel viewModel)
-                {
-                    viewModel.ToggleTaskCommand.Execute(task);
-                }
-            }
-        }
+        //private async void OnTaskCheckedChanged(object sender, CheckedChangedEventArgs e)
+        //{
+        //    if (sender is CheckBox checkBox && checkBox.BindingContext is TaskItem task)
+        //    {
+        //        // Дать UI время на обновление
+        //        await Task.Delay(10);
 
-
-
+        //        if (BindingContext is TasksViewModel viewModel)
+        //        {
+        //            // Выполняем команду асинхронно
+        //            viewModel.ToggleTaskCommand.Execute(task);
+        //        }
+        //    }
+        //}
     }
 }

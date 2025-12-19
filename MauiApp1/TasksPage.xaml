@@ -71,10 +71,9 @@
                                           Margin="0,2">
 
                                         <CheckBox Grid.Column="0"
-                                                  IsChecked="{Binding IsCompleted, Mode=TwoWay}"
+                                                  IsChecked="{Binding IsCompleted}"
                                                   VerticalOptions="Center"
-                                                  Color="#007ACC"
-                                                  CheckedChanged="OnTaskCheckedChanged" />
+                                                  Color="#007ACC"/>
 
                                         <Label Grid.Column="1"
                                                Text="{Binding Title}"
