@@ -19,6 +19,7 @@
                     Text="‹"
                     FontSize="24"
                     BackgroundColor="Transparent"
+                    BorderColor="Transparent"
                     TextColor="#007ACC"
                     WidthRequest="50"
                     Command="{Binding PreviousMonthCommand}"/>
@@ -32,6 +33,7 @@
 
             <Button Grid.Column="2"
                     Text="›"
+                    BorderColor="Transparent"
                     FontSize="24"
                     BackgroundColor="Transparent"
                     TextColor="#007ACC"
@@ -138,10 +140,9 @@
 
                     <CollectionView.EmptyView>
                         <StackLayout Padding="20" HorizontalOptions="Center">
-                            <Label Text="📅"
-                                   FontSize="40"
-                                   TextColor="#CCCCCC"
-                                   HorizontalOptions="Center"/>
+                            <Image Source="{AppThemeBinding Light=calendar_month_blue.png, Dark=calendar_month_gray.png}"
+                                   HeightRequest="50"
+                                   WidthRequest="50"/>
 
                             <Label Text="Событий на этот день нет"
                                    FontSize="14"

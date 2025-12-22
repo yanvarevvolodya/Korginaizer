@@ -5,22 +5,21 @@
         public App()
         {
             InitializeComponent();
-
-            //if (DeviceInfo.Platform == DevicePlatform.WinUI)
-            //{
-            //    // Для Windows
-            //    MainPage = new AppShell();
-            //}
-            //else
-            //{
-            //    // Для Android
-            //    MainPage = new AppShell();
-            //}
+            // MainPage НЕ устанавливаем здесь
         }
 
-        protected override Window CreateWindow(IActivationState? activationState)
+        protected override Window CreateWindow(IActivationState activationState)
         {
-            return new Window(new AppShell());
+            // Явно создаём Shell и окно
+            var shell = new AppShell();
+            var window = new Window(shell);
+
+#if WINDOWS || MACCATALYST
+    window.MinimumHeight = 670;
+    window.MinimumWidth = 760;
+#endif
+
+            return window;
         }
     }
 }

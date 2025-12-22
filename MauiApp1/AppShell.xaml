@@ -4,40 +4,63 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiApp1"
-    Title="Korginaizer"
-    
-    FlyoutBehavior="Disabled"
-    Shell.TabBarIsVisible="True"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
 
-    Shell.BackgroundColor="{AppThemeBinding Light=#e6e6fa, Dark=#000033}"
+    Title="Korginaizer"
+    ZIndex="999"
+    
+    FlyoutBehavior="{OnPlatform Android=Disabled, WinUI=Locked}"
+    FlyoutWidth="92"
+    FlyoutBackgroundColor="Transparent"
+    Shell.TabBarIsVisible="{OnPlatform Android=true, WinUI=false}"
+
+    Shell.BackgroundColor="{AppThemeBinding Light=White, Dark=Black}"
     Shell.ForegroundColor="{AppThemeBinding Light=#bdbdf2, Dark=White}"
     Shell.TitleColor="{AppThemeBinding Light=Black, Dark=White}"
     Shell.UnselectedColor="{AppThemeBinding Light=#AAAAAA, Dark=#AAAAAA}">
 
-    <TabBar>
-        <Tab Title="Задачи"
+    
+    <Shell.Behaviors>
+        <toolkit:StatusBarBehavior>
+            <!-- Цвет фона StatusBar -->
+            <toolkit:StatusBarBehavior.StatusBarColor>
+                <AppThemeBinding Light="White" Dark="#1a1a1a" />
+            </toolkit:StatusBarBehavior.StatusBarColor>
+            <!-- Стиль значков: темный для светлого фона и светлый для темного -->
+            <toolkit:StatusBarBehavior.StatusBarStyle>
+                <AppThemeBinding Light="DarkContent" Dark="LightContent" />
+            </toolkit:StatusBarBehavior.StatusBarStyle>
+        </toolkit:StatusBarBehavior>
+    </Shell.Behaviors>
+
+
+    <!-- Основной FlyoutItem с табами -->
+    <FlyoutItem FlyoutDisplayOptions="AsMultipleItems" >
+        <Tab 
              Icon="tasks_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:TasksPage}" 
                           Route="TasksPage" />
         </Tab>
 
-        <Tab Title="Календарь"
+        <Tab 
              Icon="calendar_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" 
                           Route="CalendarPage" />
         </Tab>
 
-        <Tab Title="Канбан-доски"
-             Icon="kanban_blue.png">
+        <Tab 
+             
+            Icon="kanban_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:KanbanPage}" 
-                  Route="KanbanPage" />
+                          Route="KanbanPage" />
         </Tab>
 
-        <Tab Title="Настройки"
+        <Tab Title="Настройки" 
+             IsVisible="False"
              Icon="settings_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" 
                           Route="SettingsPage" />
         </Tab>
-    </TabBar>
+    </FlyoutItem>
 
 </Shell>

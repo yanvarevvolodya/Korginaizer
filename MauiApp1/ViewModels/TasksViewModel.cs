@@ -605,27 +605,27 @@ namespace MauiApp1.ViewModels
 
             try
             {
-                // Спросить описание (опционально)
-                string description = null;
-                var addDescription = await Application.Current.MainPage.DisplayAlert(
-                    "Описание",
-                    "Добавить описание к задаче?",
-                    "Да", "Нет");
+                //// Спросить описание (опционально)
+                //string description = null;
+                //var addDescription = await Application.Current.MainPage.DisplayAlert(
+                //    "Описание",
+                //    "Добавить описание к задаче?",
+                //    "Да", "Нет");
 
-                if (addDescription)
-                {
-                    description = await Application.Current.MainPage.DisplayPromptAsync(
-                        "Описание задачи",
-                        "Введите описание:",
-                        "Сохранить",
-                        "Пропустить",
-                        maxLength: 500);
-                }
+                //if (addDescription)
+                //{
+                //    description = await Application.Current.MainPage.DisplayPromptAsync(
+                //        "Описание задачи",
+                //        "Введите описание:",
+                //        "Сохранить",
+                //        "Пропустить",
+                //        maxLength: 500);
+                //}
 
                 var newTask = new TaskItem
                 {
                     Title = NewTaskTitle.Trim(),
-                    Description = description?.Trim() ?? "",
+                    Description = "",
                     TaskListId = SelectedList.Id,
                     CreatedDate = DateTime.Now
                 };

@@ -156,6 +156,7 @@
                                             <Button Grid.Column="0"
                         ImageSource="{AppThemeBinding Light=calendar1_blue.png, Dark=calendar_white.png}"
                         BackgroundColor="Transparent"
+                                                    BorderColor="Transparent"
                         TextColor="#007ACC"
                         FontSize="14"
                         WidthRequest="50"
@@ -166,6 +167,7 @@
                                             <!-- Кнопка меню задачи -->
                                             <Button Grid.Column="1"
                         Text="⋯"
+                                                    BorderColor="Transparent"
                         BackgroundColor="Transparent"
                         TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
                         FontSize="19"
@@ -178,6 +180,7 @@
                                             <Button Grid.Column="2"
                         Text="✕"
                         BackgroundColor="Transparent"
+                                                    BorderColor="Transparent"
                         TextColor="#DC3545"
                         FontSize="12"
                         WidthRequest="40"
@@ -216,9 +219,9 @@
                Padding="0"
                CornerRadius="0"
                HasShadow="True"
-               ZIndex="999"
+               ZIndex="998"
                TranslationX="-250"
-               IsVisible="True">
+               IsVisible="False">
 
             <Grid RowDefinitions="Auto, Auto, Auto, *" 
                   Padding="10,20,10,10">
@@ -226,6 +229,7 @@
                 <!-- 1. Кнопка закрытия панели -->
                 <Button Grid.Row="0"
                 Text="✕"
+                        BorderColor="Transparent"
                 FontSize="{OnPlatform WinUI=18}"
                 BackgroundColor="Transparent"
                 TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"
@@ -289,6 +293,8 @@
                                                 FontSize="16"
                                                 WidthRequest="{OnPlatform WinUI=40, Android=45}"
                                                 HeightRequest="40"
+                                                CornerRadius="20"
+                                                BorderColor="Transparent"
                                                 Margin="-10,0,0,0"
                                                 Command="{Binding Path=BindingContext.ShowListMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                                 CommandParameter="{Binding .}"/>

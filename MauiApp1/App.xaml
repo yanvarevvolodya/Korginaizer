@@ -25,6 +25,8 @@
                         Value="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"/>
             </Style>
 
+            
+
             <Style x:Key="DraggableCard" TargetType="Frame">
                 <Setter Property="HasShadow" Value="True"/>
                 <Setter Property="CornerRadius" Value="8"/>

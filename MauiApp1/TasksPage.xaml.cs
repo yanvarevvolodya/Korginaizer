@@ -27,27 +27,51 @@ namespace MauiApp1
             {
                 if (e.PropertyName == nameof(TasksViewModel.SidePanelWidth))
                 {
-                    // Анимируем перемещение панели
-                    await SidePanel.TranslateTo(-(250 - vm.SidePanelWidth), 0, 250, Easing.CubicOut);
+                    // Управляем видимостью панели
+                    if (vm.SidePanelWidth > 0 && !SidePanel.IsVisible)
+                    {
+                        SidePanel.IsVisible = true;
+                        SidePanel.TranslationX = -250; // Начинаем с полностью скрытого состояния
+                        await SidePanel.TranslateTo(-(250 - vm.SidePanelWidth), 0, 250, Easing.CubicOut);
+                    }
+                    else if (vm.SidePanelWidth == 0 && SidePanel.IsVisible)
+                    {
+                        await SidePanel.TranslateTo(-250, 0, 250, Easing.CubicIn);
+                        SidePanel.IsVisible = false;
+                    }
+                    else if (vm.SidePanelWidth > 0)
+                    {
+                        await SidePanel.TranslateTo(-(250 - vm.SidePanelWidth), 0, 250, Easing.CubicOut);
+                    }
 
-                    // Синхронизируем видимость оверлея с шириной панели
-                    // Оверлей становится видимым, когда панель начинает выезжать (ширина > 0)
+                    // Синхронизируем видимость оверлея
                     if (vm.SidePanelWidth > 0 && !Overlay.IsVisible)
                     {
                         Overlay.IsVisible = true;
-                        Overlay.InputTransparent = false; // Теперь он может перехватывать нажатия
-                        await Overlay.FadeTo(0.4, 150); // Плавное появление с затемнением
+                        Overlay.InputTransparent = false;
+                        await Overlay.FadeTo(0.4, 150);
                     }
                     else if (vm.SidePanelWidth == 0 && Overlay.IsVisible)
                     {
-                        await Overlay.FadeTo(0, 150); // Плавное исчезновение
+                        await Overlay.FadeTo(0, 150);
                         Overlay.IsVisible = false;
-                        Overlay.InputTransparent = true; // Снова отключаем реакцию на нажатия
+                        Overlay.InputTransparent = true;
                     }
                 }
                 else if (e.PropertyName == nameof(TasksViewModel.IsSidePanelVisible))
                 {
-                    SidePanel.IsVisible = vm.IsSidePanelVisible;
+                    // Обработка прямой смены видимости
+                    if (vm.IsSidePanelVisible && !SidePanel.IsVisible)
+                    {
+                        SidePanel.IsVisible = true;
+                        SidePanel.TranslationX = -250;
+                        await SidePanel.TranslateTo(0, 0, 250, Easing.CubicOut);
+                    }
+                    else if (!vm.IsSidePanelVisible && SidePanel.IsVisible)
+                    {
+                        await SidePanel.TranslateTo(-250, 0, 250, Easing.CubicIn);
+                        SidePanel.IsVisible = false;
+                    }
                 }
             }
         }
