@@ -156,82 +156,102 @@
                                     <DataTemplate>
                                         <!-- УПРОЩЕННАЯ КАРТОЧКА -->
                                         <Frame Padding="12"
-                                               Margin="0,0,0,8"
-                                               BackgroundColor="{Binding Color}"
-                                               CornerRadius="6"
-                                               HasShadow="False"
-                                               HeightRequest="80">
+           Margin="0,0,0,8"
+           BackgroundColor="{Binding Color}"
+           CornerRadius="6"
+           HasShadow="False"
+           HeightRequest="95">
+                                            <!-- Увеличиваем высоту для даты -->
 
-                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto"
-                                                  ColumnSpacing="2">
+                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto"
+              ColumnSpacing="2">
 
                                                 <!-- Кнопка вверх -->
                                                 <Button Grid.Column="0"
-                                                        Text="↑"
-                                                        BackgroundColor="Transparent"
-                                                        TextColor="White"
-                                                        FontSize="10"
-                                                        WidthRequest="22"
-                                                        HeightRequest="22"
-                                                        Padding="0"
-                                                        Command="{Binding Path=BindingContext.MoveCardUpCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                        CommandParameter="{Binding .}"/>
+                    Text="↑"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    FontSize="10"
+                    WidthRequest="22"
+                    HeightRequest="22"
+                    Padding="0"
+                    Command="{Binding Path=BindingContext.MoveCardUpCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                    CommandParameter="{Binding .}"/>
 
                                                 <!-- Основное содержимое -->
                                                 <VerticalStackLayout Grid.Column="1"
-                                                                     Spacing="2"
-                                                                     VerticalOptions="Center">
+                                 Spacing="1"
+                                 VerticalOptions="Center">
                                                     <Label Text="{Binding Title}"
-                                                           FontSize="13"
-                                                           FontAttributes="Bold"
-                                                           TextColor="White"
-                                                           LineBreakMode="TailTruncation"
-                                                           MaxLines="2"/>
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="2"/>
 
                                                     <Label Text="{Binding Description}"
-                                                           FontSize="11"
-                                                           TextColor="#FFFFFF"
-                                                           Opacity="0.8"
-                                                           LineBreakMode="TailTruncation"
-                                                           MaxLines="1"
-                                                           IsVisible="{Binding Description, Converter={StaticResource StringToBoolConverter}}"/>
+                       FontSize="11"
+                       TextColor="#FFFFFF"
+                       Opacity="0.8"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1"
+                       IsVisible="{Binding Description, Converter={StaticResource StringToBoolConverter}}"/>
+
+                                                    <!-- Отображение даты и времени -->
+                                                    <Label Text="{Binding FormattedDueDateTime}"
+                       FontSize="11"
+                       TextColor="#FFFFFF"
+                       Opacity="0.7"
+                       IsVisible="{Binding HasDueDateTime}"/>
                                                 </VerticalStackLayout>
 
                                                 <!-- Кнопка вниз -->
                                                 <Button Grid.Column="2"
-                                                        Text="↓"
-                                                        BackgroundColor="Transparent"
-                                                        TextColor="White"
-                                                        FontSize="10"
-                                                        WidthRequest="22"
-                                                        HeightRequest="22"
-                                                        Padding="0"
-                                                        Command="{Binding Path=BindingContext.MoveCardDownCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                        CommandParameter="{Binding .}"/>
+                    Text="↓"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    FontSize="10"
+                    WidthRequest="22"
+                    HeightRequest="22"
+                    Padding="0"
+                    Command="{Binding Path=BindingContext.MoveCardDownCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                    CommandParameter="{Binding .}"/>
 
                                                 <!-- Кнопка перемещения -->
                                                 <Button Grid.Column="3"
-                                                        Text="↷"
-                                                        BackgroundColor="Transparent"
-                                                        TextColor="White"
-                                                        FontSize="11"
-                                                        WidthRequest="24"
-                                                        HeightRequest="24"
-                                                        Padding="0"
-                                                        Command="{Binding Path=BindingContext.MoveCardToColumnCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                        CommandParameter="{Binding .}"/>
+                    Text="↷"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    FontSize="11"
+                    WidthRequest="24"
+                    HeightRequest="24"
+                    Padding="0"
+                    Command="{Binding Path=BindingContext.MoveCardToColumnCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                    CommandParameter="{Binding .}"/>
+
+                                                <!-- Кнопка календаря -->
+                                                <Button Grid.Column="4"
+                    ImageSource="calendar_white.png"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    FontSize="11"
+                    WidthRequest="24"
+                    HeightRequest="24"
+                    Padding="0"
+                    Command="{Binding Path=BindingContext.SetDueDateCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                    CommandParameter="{Binding .}"/>
 
                                                 <!-- Кнопка удаления -->
-                                                <Button Grid.Column="4"
-                                                        Text="✕"
-                                                        BackgroundColor="Transparent"
-                                                        TextColor="#FF4444"
-                                                        FontSize="11"
-                                                        WidthRequest="24"
-                                                        HeightRequest="24"
-                                                        Padding="0"
-                                                        Command="{Binding Path=BindingContext.DeleteCardCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                        CommandParameter="{Binding .}"/>
+                                                <Button Grid.Column="5"
+                    Text="✕"
+                    BackgroundColor="Transparent"
+                    TextColor="#FF4444"
+                    FontSize="11"
+                    WidthRequest="24"
+                    HeightRequest="24"
+                    Padding="0"
+                    Command="{Binding Path=BindingContext.DeleteCardCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                    CommandParameter="{Binding .}"/>
                                             </Grid>
                                         </Frame>
                                     </DataTemplate>

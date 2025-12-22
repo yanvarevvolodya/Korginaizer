@@ -37,6 +37,8 @@ namespace MauiApp1.ViewModels
             MoveCardDownCommand = new Command<KanbanCard>(async (card) => await MoveCardDownAsync(card));
             MoveCardToColumnCommand = new Command<KanbanCard>(async (card) => await MoveCardToColumnAsync(card));
 
+            SetDueDateCommand = new Command<KanbanCard>(async (card) => await SetDueDateForCardAsync(card));
+
             LoadBoards();
         }
 
@@ -63,8 +65,105 @@ namespace MauiApp1.ViewModels
         public ICommand MoveCardUpCommand { get; }
         public ICommand MoveCardDownCommand { get; }
         public ICommand MoveCardToColumnCommand { get; }
+        public ICommand SetDueDateCommand { get; }
 
         #region Загрузка данных
+
+        private async Task SetDueDateForCardAsync(KanbanCard card)
+        {
+            if (card == null) return;
+
+            // 1. Запрашиваем дату
+            var currentDate = card.DueDate ?? DateTime.Today;
+            var dateResult = await Application.Current.MainPage.DisplayPromptAsync(
+                "Дата выполнения",
+                "Введите дату (дд.мм.гггг):",
+                "Далее",
+                "Отмена",
+                keyboard: Keyboard.Numeric,
+                initialValue: currentDate.ToString("dd.MM.yyyy"));
+
+            if (string.IsNullOrWhiteSpace(dateResult)) return;
+
+            if (!DateTime.TryParseExact(dateResult, "dd.MM.yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out DateTime selectedDate))
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    "Некорректный формат даты. Используйте дд.мм.гггг", "OK");
+                return;
+            }
+
+            // 2. Запрашиваем время (опционально)
+            var timeOptions = new[] { "Без времени", "Указать время", "Отмена" };
+            var timeChoice = await Application.Current.MainPage.DisplayActionSheet(
+                "Время выполнения",
+                "Отмена",
+                null,
+                timeOptions);
+
+            TimeSpan? selectedTime = null;
+
+            if (timeChoice == "Указать время")
+            {
+                var currentTime = card.DueTime ?? new TimeSpan(12, 0, 0);
+                var timeResult = await Application.Current.MainPage.DisplayPromptAsync(
+                    "Время выполнения",
+                    "Введите время (чч:мм):",
+                    "Сохранить",
+                    "Отмена",
+                    keyboard: Keyboard.Numeric,
+                    initialValue: currentTime.ToString(@"hh\:mm"));
+
+                if (!string.IsNullOrWhiteSpace(timeResult))
+                {
+                    if (TimeSpan.TryParseExact(timeResult, @"hh\:mm",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out TimeSpan parsedTime))
+                    {
+                        selectedTime = parsedTime;
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Ошибка",
+                            "Некорректный формат времени. Используйте чч:мм", "OK");
+                        return;
+                    }
+                }
+            }
+            else if (timeChoice == "Без времени")
+            {
+                selectedTime = null;
+            }
+            else
+            {
+                return; // Пользователь нажал Отмена
+            }
+
+            // 3. Сохраняем изменения
+            try
+            {
+                card.SetDueDateTime(selectedDate, selectedTime);
+                await _databaseService.SaveKanbanCardAsync(card);
+
+                // Обновляем отображение - находим столбец и карточку
+                var column = Columns.FirstOrDefault(c => c.Id == card.ColumnId);
+                if (column != null)
+                {
+                    var cardInCollection = column.Cards.FirstOrDefault(c => c.Id == card.Id);
+                    if (cardInCollection != null)
+                    {
+                        // Обновляем свойства даты и времени
+                        cardInCollection.SetDueDateTime(selectedDate, selectedTime);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось установить дату: {ex.Message}", "OK");
+            }
+        }
 
         private async void LoadBoards()
         {
@@ -442,6 +541,18 @@ namespace MauiApp1.ViewModels
                     Position = column.Cards.Count,
                     Color = GetRandomColor()
                 };
+
+                // Спросить, хочет ли пользователь установить дату сразу
+                bool setDateNow = await Application.Current.MainPage.DisplayAlert(
+                    "Дата выполнения",
+                    "Хотите установить дату выполнения для этой карточки?",
+                    "Да", "Нет");
+
+                if (setDateNow)
+                {
+                    // Вызываем метод установки даты
+                    await SetDueDateForCardAsync(card);
+                }
 
                 await _databaseService.SaveKanbanCardAsync(card);
                 column.Cards.Add(card);
