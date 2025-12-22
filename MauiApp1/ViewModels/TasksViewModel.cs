@@ -1,8 +1,9 @@
 ﻿using MauiApp1.Models;
 using MauiApp1.Services;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 using System.Diagnostics;
+using System.Text;
+using System.Windows.Input;
 
 namespace MauiApp1.ViewModels
 {
@@ -33,6 +34,7 @@ namespace MauiApp1.ViewModels
             ShowListMenuCommand = new Command<TaskList>(async (list) => await ShowListMenuAsync(list));
             SetDueDateCommand = new Command<TaskItem>(async (task) => await SetDueDateForTaskAsync(task));
             ToggleTaskStatusCommand = new Command<TaskItem>(async (task) => await ToggleTaskStatusAsync(task));
+            ShowTaskMenuCommand = new Command<TaskItem>(async (task) => await ShowTaskMenuAsync(task));
 
             // Загружаем данные
             LoadTaskLists();
@@ -74,10 +76,140 @@ namespace MauiApp1.ViewModels
         public ICommand ShowAddListModalCommand { get; }
         public ICommand AddTaskCommand { get; }
         public ICommand DeleteTaskCommand { get; }
-        public ICommand ShowListMenuCommand { get; } // Новая команда
+        public ICommand ShowListMenuCommand { get; }
         public ICommand SetDueDateCommand { get; }
+        public ICommand ShowTaskMenuCommand { get; }
 
         public ICommand ToggleTaskStatusCommand { get; }
+
+        private async Task ShowTaskMenuAsync(TaskItem task)
+        {
+            if (task == null) return;
+
+            var action = await Application.Current.MainPage.DisplayActionSheet(
+                $"Задача: {task.Title}",
+                "Отмена",
+                null,
+                "Подробности",
+                "Редактировать",
+                "Удалить");
+
+            switch (action)
+            {
+                case "Подробности":
+                    await ShowTaskDetailsAsync(task);
+                    break;
+                case "Редактировать":
+                    await EditTaskAsync(task);
+                    break;
+                case "Удалить":
+                    await DeleteTaskAsync(task);
+                    break;
+            }
+        }
+
+        private async Task ShowTaskDetailsAsync(TaskItem task)
+        {
+            if (task == null) return;
+
+            // Формируем детальную информацию
+            var details = new StringBuilder();
+            details.AppendLine($"**{task.Title}**");
+            details.AppendLine();
+
+            if (!string.IsNullOrWhiteSpace(task.Description))
+            {
+                details.AppendLine($"Описание:");
+                details.AppendLine($"{task.Description}");
+                details.AppendLine();
+            }
+
+            details.AppendLine($"Дата создания:");
+            details.AppendLine($"{task.CreatedDate:dd.MM.yyyy HH:mm}");
+            details.AppendLine();
+
+            if (task.DueDate.HasValue)
+            {
+                details.AppendLine($"Срок выполнения:");
+                details.AppendLine($"{task.FormattedDueDateTime}");
+                details.AppendLine();
+            }
+
+            details.AppendLine($"Статус:");
+            details.AppendLine($"{(task.IsCompleted ? "✓ Выполнена" : "◯ В процессе")}");
+
+            await Application.Current.MainPage.DisplayAlert(
+                "Подробная информация о задаче",
+                details.ToString(),
+                "Закрыть");
+        }
+
+        // Метод для редактирования задачи
+        private async Task EditTaskAsync(TaskItem task)
+        {
+            if (task == null) return;
+
+            // 1. Редактирование названия
+            var newTitle = await Application.Current.MainPage.DisplayPromptAsync(
+                "Редактирование задачи",
+                "Введите новое название:",
+                "Сохранить",
+                "Отмена",
+                initialValue: task.Title,
+                maxLength: 100);
+
+            if (string.IsNullOrWhiteSpace(newTitle) || newTitle == task.Title)
+                return;
+
+            // 2. Редактирование описания
+            var newDescription = await Application.Current.MainPage.DisplayPromptAsync(
+                "Описание задачи",
+                "Введите описание (оставьте пустым, чтобы удалить):",
+                "Сохранить",
+                "Отмена",
+                initialValue: task.Description,
+                maxLength: 500);
+
+            // Сохраняем изменения
+            try
+            {
+                task.Title = newTitle.Trim();
+                task.Description = newDescription?.Trim() ?? "";
+
+                await _databaseService.SaveTaskAsync(task);
+
+                // Обновляем отображение
+                var index = Tasks.IndexOf(task);
+                if (index != -1)
+                {
+                    Tasks[index] = task;
+                }
+
+                await Application.Current.MainPage.DisplayAlert(
+                    "Успешно",
+                    "Задача обновлена",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "Ошибка",
+                    $"Не удалось обновить задачу: {ex.Message}",
+                    "OK");
+            }
+        }
+
+        // Вспомогательный метод для получения текста приоритета
+        private string GetPriorityText(int priority)
+        {
+            return priority switch
+            {
+                1 => "Низкий",
+                2 => "Средний",
+                3 => "Высокий",
+                _ => "Средний"
+            };
+        }
 
         private async Task ToggleTaskStatusAsync(TaskItem task)
         {
@@ -473,9 +605,27 @@ namespace MauiApp1.ViewModels
 
             try
             {
+                // Спросить описание (опционально)
+                string description = null;
+                var addDescription = await Application.Current.MainPage.DisplayAlert(
+                    "Описание",
+                    "Добавить описание к задаче?",
+                    "Да", "Нет");
+
+                if (addDescription)
+                {
+                    description = await Application.Current.MainPage.DisplayPromptAsync(
+                        "Описание задачи",
+                        "Введите описание:",
+                        "Сохранить",
+                        "Пропустить",
+                        maxLength: 500);
+                }
+
                 var newTask = new TaskItem
                 {
                     Title = NewTaskTitle.Trim(),
+                    Description = description?.Trim() ?? "",
                     TaskListId = SelectedList.Id,
                     CreatedDate = DateTime.Now
                 };
