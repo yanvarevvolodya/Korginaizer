@@ -31,6 +31,8 @@ namespace MauiApp1.ViewModels
 
             // Новая команда для меню списка
             ShowListMenuCommand = new Command<TaskList>(async (list) => await ShowListMenuAsync(list));
+            SetDueDateCommand = new Command<TaskItem>(async (task) => await SetDueDateForTaskAsync(task));
+            ToggleTaskStatusCommand = new Command<TaskItem>(async (task) => await ToggleTaskStatusAsync(task));
 
             // Загружаем данные
             LoadTaskLists();
@@ -73,6 +75,152 @@ namespace MauiApp1.ViewModels
         public ICommand AddTaskCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand ShowListMenuCommand { get; } // Новая команда
+        public ICommand SetDueDateCommand { get; }
+
+        public ICommand ToggleTaskStatusCommand { get; }
+
+        private async Task ToggleTaskStatusAsync(TaskItem task)
+        {
+            if (task == null) return;
+
+            try
+            {
+                // НЕ инвертируем статус! Он уже изменен через привязку
+                // Просто сохраняем текущий статус в базу
+
+                Debug.WriteLine($"Сохранение задачи: ID={task.Id}, IsCompleted={task.IsCompleted}");
+                await _databaseService.SaveTaskAsync(task);
+
+                // НЕ обновляем элемент в коллекции - он уже обновлен через привязку
+                // Только пересортируем задачи
+                await Task.Delay(100); // Даем время UI на обновление
+                await ReorderTasks();
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось обновить статус задачи: {ex.Message}", "OK");
+
+                // Восстанавливаем исходный статус в UI
+                task.IsCompleted = !task.IsCompleted;
+            }
+        }
+
+        public async Task SaveTaskStatusAsync(TaskItem task)
+        {
+            try
+            {
+                await _databaseService.SaveTaskAsync(task);
+                Debug.WriteLine($"Статус сохранен: ID={task.Id}, IsCompleted={task.IsCompleted}");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось сохранить статус: {ex.Message}", "OK");
+            }
+        }
+
+        // Метод для пересортировки задач
+        private async Task ReorderTasks()
+        {
+            var currentListId = SelectedList?.Id;
+            if (currentListId.HasValue)
+            {
+                await Task.Delay(10); // Небольшая задержка для стабильности
+                LoadTasks(currentListId.Value);
+            }
+        }
+
+        private async Task SetDueDateForTaskAsync(TaskItem task)
+        {
+            if (task == null) return;
+
+            // 1. Запрашиваем дату
+            var currentDate = task.DueDate ?? DateTime.Today;
+            var dateResult = await Application.Current.MainPage.DisplayPromptAsync(
+                "Дата выполнения",
+                "Введите дату (дд.мм.гггг):",
+                "Далее",
+                "Отмена",
+                keyboard: Keyboard.Numeric,
+                initialValue: currentDate.ToString("dd.MM.yyyy"));
+
+            if (string.IsNullOrWhiteSpace(dateResult)) return;
+
+            if (!DateTime.TryParseExact(dateResult, "dd.MM.yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out DateTime selectedDate))
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    "Некорректный формат даты. Используйте дд.мм.гггг", "OK");
+                return;
+            }
+
+            // 2. Запрашиваем время (опционально)
+            var timeOptions = new[] { "Без времени", "Указать время", "Отмена" };
+            var timeChoice = await Application.Current.MainPage.DisplayActionSheet(
+                "Время выполнения",
+                "Отмена",
+                null,
+                timeOptions);
+
+            TimeSpan? selectedTime = null;
+
+            if (timeChoice == "Указать время")
+            {
+                var currentTime = task.DueTime ?? new TimeSpan(12, 0, 0);
+                var timeResult = await Application.Current.MainPage.DisplayPromptAsync(
+                    "Время выполнения",
+                    "Введите время (чч:мм):",
+                    "Сохранить",
+                    "Отмена",
+                    keyboard: Keyboard.Numeric,
+                    initialValue: currentTime.ToString(@"hh\:mm"));
+
+                if (!string.IsNullOrWhiteSpace(timeResult))
+                {
+                    if (TimeSpan.TryParseExact(timeResult, @"hh\:mm",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out TimeSpan parsedTime))
+                    {
+                        selectedTime = parsedTime;
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Ошибка",
+                            "Некорректный формат времени. Используйте чч:мм", "OK");
+                        return;
+                    }
+                }
+            }
+            else if (timeChoice == "Без времени")
+            {
+                selectedTime = null;
+            }
+            else
+            {
+                return; // Пользователь нажал Отмена
+            }
+
+            // 3. Сохраняем изменения
+            try
+            {
+                task.SetDueDateTime(selectedDate, selectedTime);
+                await _databaseService.SaveTaskAsync(task);
+
+                // Обновляем отображение
+                var index = Tasks.IndexOf(task);
+                if (index != -1)
+                {
+                    Tasks[index] = task;
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Ошибка",
+                    $"Не удалось установить дату: {ex.Message}", "OK");
+            }
+        }
 
         // МЕТОД ДЛЯ МЕНЮ СПИСКА
         private async Task ShowListMenuAsync(TaskList list)
@@ -273,7 +421,14 @@ namespace MauiApp1.ViewModels
                 var tasks = await _databaseService.GetTasksByListIdAsync(listId);
                 Tasks.Clear();
 
-                foreach (var task in tasks.OrderBy(t => t.IsCompleted))
+                // Сортируем: сначала невыполненные с ближайшей датой, потом без даты, потом выполненные
+                var sortedTasks = tasks
+                    .OrderBy(t => t.IsCompleted) // Сначала невыполненные
+                    .ThenBy(t => t.DueDate.HasValue ? 0 : 1) // С датой - вперёд
+                    .ThenBy(t => t.DueDate) // По возрастанию даты
+                    .ThenBy(t => t.CreatedDate); // Если даты одинаковые - по времени создания
+
+                foreach (var task in sortedTasks)
                 {
                     Tasks.Add(task);
                 }

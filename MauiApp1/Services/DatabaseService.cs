@@ -221,10 +221,23 @@ namespace MauiApp1.Services
         {
             try
             {
+                Debug.WriteLine($"=== СОХРАНЕНИЕ ЗАДАЧИ ===");
+                Debug.WriteLine($"ID: {task.Id}, Title: '{task.Title}'");
+                Debug.WriteLine($"IsCompleted до сохранения: {task.IsCompleted}");
+                Debug.WriteLine($"Stack trace: {Environment.StackTrace}");
+
                 if (task.Id != 0)
-                    return await _database.UpdateAsync(task);
+                {
+                    var result = await _database.UpdateAsync(task);
+                    Debug.WriteLine($"Задача ОБНОВЛЕНА: ID={task.Id}, IsCompleted={task.IsCompleted}");
+                    return result;
+                }
                 else
-                    return await _database.InsertAsync(task);
+                {
+                    var result = await _database.InsertAsync(task);
+                    Debug.WriteLine($"Задача СОЗДАНА: ID={task.Id}, IsCompleted={task.IsCompleted}");
+                    return result;
+                }
             }
             catch (Exception ex)
             {

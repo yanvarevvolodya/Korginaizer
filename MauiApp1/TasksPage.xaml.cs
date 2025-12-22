@@ -1,7 +1,9 @@
-﻿using MauiApp1.Models;
+﻿using MauiApp1.Extensions;
+using MauiApp1.Models;
 using MauiApp1.Services;
 using MauiApp1.ViewModels;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace MauiApp1
 {
@@ -92,6 +94,34 @@ namespace MauiApp1
                 if (BindingContext is TasksViewModel viewModel)
                 {
                     viewModel.DeleteTaskCommand.Execute(task);
+                }
+            }
+        }
+
+        private async void OnTaskCheckedChanged(object sender, CheckedChangedEventArgs e)
+        {
+            if (sender is CheckBox checkBox && checkBox.BindingContext is TaskItem task)
+            {
+                // Временно отключаем обработку, чтобы избежать циклов
+                checkBox.CheckedChanged -= OnTaskCheckedChanged;
+
+                try
+                {
+                    Debug.WriteLine($"CheckBox изменен: ID={task.Id}, IsCompleted={task.IsCompleted}");
+
+                    // Даем UI время на обновление
+                    await Task.Delay(100);
+
+                    if (BindingContext is TasksViewModel viewModel)
+                    {
+                        // Сохраняем задачу в базу
+                        await viewModel.SaveTaskStatusAsync(task);
+                    }
+                }
+                finally
+                {
+                    // Возвращаем обработчик
+                    checkBox.CheckedChanged += OnTaskCheckedChanged;
                 }
             }
         }

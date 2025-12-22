@@ -33,42 +33,61 @@ namespace MauiApp1.Models
         public bool IsCompleted
         {
             get => _isCompleted;
-            set
-            {
-                if (_isCompleted != value)
-                {
-                    _isCompleted = value;
-                    OnPropertyChanged();
-
-                    // Автоматически сохраняем в БД при изменении
-                    SaveToDatabaseAsync();
-                }
-            }
-        }
-
-        private async void SaveToDatabaseAsync()
-        {
-            try
-            {
-                // Нужен доступ к DatabaseService
-                // Используем DependencyService или статический метод
-                await Task.Run(async () =>
-                {
-                    // Создаем временный DatabaseService
-                    var databaseService = new DatabaseService();
-                    await databaseService.SaveTaskAsync(this);
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка сохранения задачи: {ex.Message}");
-            }
+            set => SetProperty(ref _isCompleted, value);
         }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime? DueDate { get; set; }
+
+        private DateTime? _dueDate;
+        public DateTime? DueDate
+        {
+            get => _dueDate;
+            set => SetProperty(ref _dueDate, value);
+        }
+
+        private string _dueTimeString;
+        public string DueTimeString
+        {
+            get => _dueTimeString;
+            set => SetProperty(ref _dueTimeString, value);
+        }
+
+        [Ignore]
+        public TimeSpan? DueTime
+        {
+            get => string.IsNullOrEmpty(DueTimeString) ? null : TimeSpan.Parse(DueTimeString);
+            set => DueTimeString = value?.ToString(@"hh\:mm");
+        }
+
         public int TaskListId { get; set; }
         public int Priority { get; set; } = 1;
+
+        [Ignore]
+        public string FormattedDueDateTime
+        {
+            get
+            {
+                if (!DueDate.HasValue) return null;
+
+                var datePart = DueDate.Value.ToString("ddd, d MMMM yyyy",
+                    new System.Globalization.CultureInfo("ru-RU"));
+
+                if (DueTime.HasValue)
+                {
+                    return $"{datePart}, {DueTime.Value:hh\\:mm}";
+                }
+                return datePart;
+            }
+        }
+
+        [Ignore]
+        public bool HasDueDateTime => DueDate.HasValue;
+
+        public void SetDueDateTime(DateTime? date, TimeSpan? time)
+        {
+            DueDate = date;
+            DueTime = time;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -79,6 +98,14 @@ namespace MauiApp1.Models
 
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+            // Уведомляем об изменении вычисляемых свойств
+            if (propertyName == nameof(DueDate) || propertyName == nameof(DueTimeString))
+            {
+                OnPropertyChanged(nameof(FormattedDueDateTime));
+                OnPropertyChanged(nameof(HasDueDateTime));
+            }
+
             return true;
         }
 
