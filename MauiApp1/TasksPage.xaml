@@ -2,358 +2,110 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp1.TasksPage"
-             x:Name="TasksPageRoot">
+             Title="Задачи">
+    <Grid RowDefinitions="Auto, *"
+          Padding="15">
+        <!-- Заголовок -->
+        <Label Grid.Row="0"
+               Text="Мои задачи"
+               FontSize="24"
+               FontAttributes="Bold"
+               Margin="0,0,0,15"/>
 
-    <AbsoluteLayout>
+        <!-- Основной контент -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Spacing="15">
+                <!-- Добавление новой задачи -->
+                <Grid ColumnDefinitions="*, Auto">
+                    <Entry Placeholder="Добавить задачу..."
+                           Text="{Binding NewTaskTitle}"
+                           Completed="OnEntryCompleted"/>
+                    <Button Grid.Column="1"
+                            Text="+ Задача"
+                            Command="{Binding AddTaskCommand}"
+                            WidthRequest="80"/>
+                </Grid>
 
-        <!-- ОСНОВНОЙ КОНТЕНТ -->
-        <Grid AbsoluteLayout.LayoutBounds="0,0,1,1"
-              AbsoluteLayout.LayoutFlags="All"
-              RowDefinitions="Auto, *"
-              ColumnDefinitions="*, Auto"
-              Padding="0"
-              RowSpacing="10"
-              ColumnSpacing="10">
+                <!-- Список задач -->
+                <CollectionView ItemsSource="{Binding Tasks}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{AppThemeBinding Light=Transparent, Dark=Transparent}">
+                                <Grid Padding="10"
+                                      ColumnDefinitions="Auto, *, Auto"
+                                      BackgroundColor="{AppThemeBinding Light=LightBlue, Dark=#374045}"
+                                      Margin="0,2"
+                                      RowDefinitions="Auto, Auto">
 
-            <!-- Заголовок -->
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-      ColumnDefinitions="Auto, *, Auto"
-      HorizontalOptions="FillAndExpand"
-                  HeightRequest="70">
+                                    <!-- CheckBox -->
+                                    <CheckBox Grid.Row="0" Grid.Column="0"
+                                              Grid.RowSpan="2"
+                                              IsChecked="{Binding IsCompleted}"
+                                              Color="#007ACC"
+                                              CheckedChanged="OnTaskCheckedChanged"/>
 
-                <!-- Кнопка меню (слева) -->
-                <Button Grid.Column="0"
-            x:Name="ToggleButton"
-            Text="☰"
-            BackgroundColor="Transparent"
-            Margin="0"
-            BorderColor="Transparent"
-            WidthRequest="50"
-            HeightRequest="50"
-            Command="{Binding ToggleSidePanelCommand}"
-            HorizontalOptions="Start"
-            VerticalOptions="Center"/>
+                                    <!-- Текст задачи -->
+                                    <StackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding Title}"
+                                               FontSize="16">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding IsCompleted}"
+                                                             Value="True">
+                                                    <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                    <Setter Property="TextColor" Value="#6C757D" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                <!-- Название списка (по центру) -->
-                <Label Grid.Column="1"
-           Text="{Binding SelectedList.Name, StringFormat='{0}'}"
-           FontSize="16"
-           VerticalOptions="Center"
-           HorizontalOptions="Center"
-           HorizontalTextAlignment="Center"
-           VerticalTextAlignment="Center"
-           IsVisible="{Binding SelectedList, Converter={StaticResource NullToBoolConverter}}"/>
-
-                <!-- Заглушка при отсутствии списка (тоже по центру) -->
-                <Label Grid.Column="1"
-           Text="Выберите список задач"
-           FontSize="16"
-           VerticalOptions="Center"
-           HorizontalOptions="Center"
-           HorizontalTextAlignment="Center"
-           VerticalTextAlignment="Center"
-           TextColor="Gray"
-           IsVisible="{Binding SelectedList, Converter={StaticResource InverseBoolConverter}}"/>
-
-                <!-- Пустая колонка справа для симметрии (опционально) -->
-                <BoxView Grid.Column="2"
-                         Color="Transparent"
-                         WidthRequest="60"/>
-
-            </Grid>
-
-            <!-- Основное содержимое -->
-            <ScrollView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-                <StackLayout Spacing="15" Padding="15,0,15,15">
-
-                    <!-- Добавление новой задачи -->
-                    <Grid ColumnDefinitions="*, Auto"
-                          Margin="0,0,0,15">
-                        <Entry Grid.Column="0"
-                               Placeholder="Добавить задачу..."
-                               PlaceholderColor="LightSlateGray"
-                               Text="{Binding NewTaskTitle}"
-                               Completed="OnEntryCompleted" />
-                        <Button Grid.Column="1"
-                                Text="+ Задача"
-                                Command="{Binding AddTaskCommand}"
-                                TextColor="White"
-                                WidthRequest="80" />
-                    </Grid>
-
-                    <!-- Список задач -->
-                    <CollectionView ItemsSource="{Binding Tasks}"
-                                    Margin="0,10,0,0">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{AppThemeBinding Light=Transparent, Dark=Transparent}">
-                                    <Grid Padding="10"
-              ColumnDefinitions="Auto, *, Auto"
-              BackgroundColor="{AppThemeBinding Light=LightBlue, Dark=#374045}" 
-              Margin="0,2"
-              RowDefinitions="Auto, Auto">
-
-                                        <!-- CheckBox с привязкой к команде -->
-                                        <CheckBox Grid.Row="0" Grid.Column="0"
-                      Grid.RowSpan="2"
-                      IsChecked="{Binding IsCompleted}"
-                      VerticalOptions="Start"
-                      Color="#007ACC"
-                      CheckedChanged="OnTaskCheckedChanged"/>
-
-                                        <StackLayout Grid.Row="0" Grid.Column="1" 
-                         Spacing="2">
-                                            <!-- Заголовок задачи -->
-                                            <Label Text="{Binding Title}"
-                       VerticalOptions="Center"
-                       FontSize="16">
-                                                <Label.Triggers>
-                                                    <DataTrigger TargetType="Label"
-                                     Binding="{Binding IsCompleted}"
-                                     Value="True">
-                                                        <Setter Property="TextDecorations" Value="Strikethrough" />
-                                                        <Setter Property="TextColor" Value="#6C757D" />
-                                                    </DataTrigger>
-                                                </Label.Triggers>
-                                            </Label>
-
-                                            <!-- Вторая строка с дополнительной информацией -->
-                                            <Grid ColumnDefinitions="Auto, *">
-                                                <!-- Иконка описания -->
-                                                <Label Grid.Column="0"
-                           Text="📝"
-                           FontSize="10"
-                           TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
-                           VerticalOptions="Center"
-                           Margin="0,0,5,0"
-                           IsVisible="{Binding Description, Converter={StaticResource StringToBoolConverter}}"/>
-
-                                                <!-- Дата выполнения -->
-                                                <Label Grid.Column="1"
-                           Text="{Binding FormattedDueDateTime}"
-                           FontSize="12"
-                           TextColor="{AppThemeBinding Light=#555, Dark=#AAA}"
-                           IsVisible="{Binding HasDueDateTime}">
-                                                    <Label.Triggers>
-                                                        <DataTrigger TargetType="Label"
-                                     Binding="{Binding IsCompleted}"
-                                     Value="True">
-                                                            <Setter Property="TextColor" Value="#6C757D" />
-                                                        </DataTrigger>
-                                                    </Label.Triggers>
-                                                </Label>
-                                            </Grid>
-                                        </StackLayout>
-
-                                        <!-- Кнопки действий -->
-                                        <Grid Grid.Row="0" Grid.Column="2"
-                  Grid.RowSpan="2"
-                  ColumnDefinitions="Auto, Auto, Auto"
-                  HorizontalOptions="End"
-                  VerticalOptions="Center">
-
-                                            <!-- Кнопка календаря -->
-                                            <Button Grid.Column="0"
-                        ImageSource="{AppThemeBinding Light=calendar1_blue.png, Dark=calendar_white.png}"
-                        BackgroundColor="Transparent"
-                                                    BorderColor="Transparent"
-                        TextColor="#007ACC"
-                        FontSize="14"
-                        WidthRequest="50"
-                        HeightRequest="40"
-                        Command="{Binding Path=BindingContext.SetDueDateCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                        CommandParameter="{Binding .}"/>
-
-                                            <!-- Кнопка меню задачи -->
-                                            <Button Grid.Column="1"
-                        Text="⋯"
-                                                    BorderColor="Transparent"
-                        BackgroundColor="Transparent"
-                        TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
-                        FontSize="19"
-                        WidthRequest="50"
-                        HeightRequest="40"
-                        Command="{Binding Path=BindingContext.ShowTaskMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                        CommandParameter="{Binding .}"/>
-
-                                            <!-- Кнопка удаления -->
-                                            <Button Grid.Column="2"
-                        Text="✕"
-                        BackgroundColor="Transparent"
-                                                    BorderColor="Transparent"
-                        TextColor="#DC3545"
-                        FontSize="12"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        Clicked="OnDeleteTaskClicked" />
+                                        <!-- Дата и описание -->
+                                        <Grid ColumnDefinitions="Auto, *">
+                                            <Label Grid.Column="0"
+                                                   Text="📝"
+                                                   FontSize="10"
+                                                   IsVisible="{Binding Description, Converter={StaticResource StringToBoolConverter}}"
+                                                   Margin="0,0,5,0"/>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding FormattedDueDateTime}"
+                                                   FontSize="12"
+                                                   IsVisible="{Binding HasDueDateTime}"/>
                                         </Grid>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                                    </StackLayout>
 
-                </StackLayout>
-            </ScrollView>
+                                    <!-- Кнопки действий -->
+                                    <Grid Grid.Row="0" Grid.Column="2"
+                                          Grid.RowSpan="2"
+                                          ColumnDefinitions="Auto, Auto, Auto">
+                                        <!-- Кнопка календаря (установка даты) -->
+                                        <Button Grid.Column="0"
+                                                ImageSource="{AppThemeBinding Light=calendar1_blue.png, Dark=calendar_white.png}"
+                                                BackgroundColor="Transparent"
+                                                Command="{Binding Path=BindingContext.SetDueDateCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding .}"
+                                                WidthRequest="50"/>
 
-        </Grid>
-
-        <BoxView x:Name="Overlay"
-             AbsoluteLayout.LayoutBounds="0,0,1,1"
-             AbsoluteLayout.LayoutFlags="All"
-             BackgroundColor="Black"
-             Opacity="0"
-             InputTransparent="true"
-            IsVisible="False"
-             ZIndex="998">
-        </BoxView>
-
-        <!-- SidePanel - ПОВЕРХ ОСНОВНОГО КОНТЕНТА -->
-        <Frame x:Name="SidePanel"
-               AbsoluteLayout.LayoutBounds="0,0,250,1"
-               AbsoluteLayout.LayoutFlags="YProportional, HeightProportional"
-               WidthRequest="250"
-               HorizontalOptions="Start"
-               VerticalOptions="Fill"
-               BackgroundColor="{AppThemeBinding Light=#f5f5f5, Dark=#2C2C2C}"
-               Padding="0"
-               CornerRadius="0"
-               HasShadow="True"
-               ZIndex="998"
-               TranslationX="-250"
-               IsVisible="False">
-
-            <Grid RowDefinitions="Auto, Auto, Auto, *" 
-                  Padding="10,20,10,10">
-
-                <!-- 1. Кнопка закрытия панели -->
-                <Button Grid.Row="0"
-                Text="✕"
-                        BorderColor="Transparent"
-                FontSize="{OnPlatform WinUI=18}"
-                BackgroundColor="Transparent"
-                TextColor="{AppThemeBinding Light=Gray, Dark=LightGray}"
-                HorizontalOptions="End"
-                WidthRequest="{OnPlatform WinUI=40}"
-                HeightRequest="40"
-                Margin="0,0,0,10"
-                Command="{Binding ToggleSidePanelCommand}"/>
-
-                <!-- 2. Кнопка создания списка (сдвигаем на строку ниже) -->
-                <Button Grid.Row="1"
-                Text="+ Создать список"
-                HeightRequest="50"
-                BackgroundColor="{AppThemeBinding Light=#b5ddf7, Dark=#2A1376}"
-                FontSize="14"
-                Command="{Binding ShowAddListModalCommand}"
-                CornerRadius="10"
-                Opacity="0.9"
-                Margin="0,0,0,10"/>
-
-                <!-- 3. Разделитель (сдвигаем на строку ниже) -->
-                <BoxView Grid.Row="2"
-                 HeightRequest="1"
-                 Color="#3A2C6B"
-                 Margin="0,10"/>
-
-                <!-- Заголовок и список -->
-                <StackLayout Grid.Row="3" Spacing="0">
-                    <Label Text="Списки"
-                           FontSize="16"
-                           HorizontalOptions="Center"
-                           Margin="0,0,0,15"/>
-
-                    <CollectionView ItemsSource="{Binding TaskLists}"
-                                    SelectionMode="Single"
-                                    SelectedItem="{Binding SelectedList}"
-                                    BackgroundColor="Transparent"
-                                    Opacity="0.9">
-
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <StackLayout BackgroundColor="{AppThemeBinding Light=Transparent, Dark=#2C2C2C}">
-                                    <Grid Padding="15,10" 
-                                          x:Name="SelectionContainer"
-                                          BackgroundColor="Transparent"
-                                          Margin="0,5,0,5"
-                                          ColumnDefinitions="*, Auto">
-
-                                        <!-- Название списка -->
-                                        <Label Grid.Column="0"
-                                               Text="{Binding Name}"
-                                               FontSize="14"
-                                               VerticalOptions="Center"
-                                               x:Name="ItemLabel"/>
-
-                                        <!-- Кнопка с тремя точками для меню -->
+                                        <!-- Кнопка меню задачи -->
                                         <Button Grid.Column="1"
                                                 Text="⋯"
                                                 BackgroundColor="Transparent"
-                                                TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
-                                                FontSize="16"
-                                                WidthRequest="{OnPlatform WinUI=40, Android=45}"
-                                                HeightRequest="40"
-                                                CornerRadius="20"
-                                                BorderColor="Transparent"
-                                                Margin="-10,0,0,0"
-                                                Command="{Binding Path=BindingContext.ShowListMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                CommandParameter="{Binding .}"/>
+                                                Command="{Binding Path=BindingContext.ShowTaskMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding .}"
+                                                WidthRequest="50"/>
 
+                                        <!-- Кнопка удаления -->
+                                        <Button Grid.Column="2"
+                                                Text="✕"
+                                                BackgroundColor="Transparent"
+                                                TextColor="#DC3545"
+                                                Clicked="OnDeleteTaskClicked"
+                                                WidthRequest="40"/>
                                     </Grid>
-
-                                    <!-- VisualStateManager остается без изменений -->
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroupList>
-                                            <VisualStateGroup x:Name="CommonStates">
-                                                <VisualState x:Name="Normal">
-                                                    <VisualState.Setters>
-                                                        <Setter TargetName="SelectionContainer" 
-                                            Property="Grid.BackgroundColor" 
-                                            Value="Transparent"/>
-                                                        <Setter TargetName="ItemLabel" 
-                                            Property="Label.TextColor" 
-                                            Value="{AppThemeBinding Light=Black, Dark=White}"/>
-                                                    </VisualState.Setters>
-                                                </VisualState>
-                                                <VisualState x:Name="Selected" >
-                                                    <VisualState.Setters>
-                                                        <Setter TargetName="SelectionContainer" 
-                                            Property="Grid.BackgroundColor" 
-                                            Value="{AppThemeBinding Light=#b5ddf7, Dark=#3A2C6B}"/>
-                                                        <Setter TargetName="ItemLabel" 
-                                            Property="Label.TextColor" 
-                                            Value="{AppThemeBinding Light=#0A2463, Dark=White}"/>
-                                                    </VisualState.Setters>
-                                                </VisualState>
-                                            </VisualStateGroup>
-                                        </VisualStateGroupList>
-                                    </VisualStateManager.VisualStateGroups>
-                                </StackLayout>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-
-                        <CollectionView.EmptyView>
-                            <StackLayout Padding="20,40"
-                     HorizontalOptions="Center">
-                                <Label Text="📭"
-                   FontSize="40"
-                   TextColor="Gray"
-                   HorizontalOptions="Center"
-                   Opacity="0.5"/>
-                                <Label Text="Списков пока нет"
-                   TextColor="Gray"
-                   FontSize="14"
-                   HorizontalOptions="Center"
-                   Opacity="0.7"
-                   Margin="0,10,0,0"/>
-                            </StackLayout>
-                        </CollectionView.EmptyView>
-                    </CollectionView>
-                </StackLayout>
-
-            </Grid>
-        </Frame>
-
-    </AbsoluteLayout>
-
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

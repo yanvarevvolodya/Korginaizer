@@ -347,5 +347,26 @@ namespace MauiApp1.Services
         }
 
 
+        public async Task<List<TaskItem>> GetAllTasksAsync()
+        {
+            //await Init();
+            return await _database.Table<TaskItem>().ToListAsync();
+        }
+
+        public async Task<int> GetOrCreateDefaultListIdAsync()
+        {
+           // await Init();
+            var lists = await _database.Table<TaskList>().ToListAsync();
+            if (lists.Any())
+                return lists.First().Id;
+            // Создаём дефолтный список
+            var defaultList = new TaskList { Name = "Все задачи", Description = "", CreatedDate = DateTime.Now };
+            await _database.InsertAsync(defaultList);
+            return defaultList.Id;
+        }
+
+        
+
+
     }
 }
