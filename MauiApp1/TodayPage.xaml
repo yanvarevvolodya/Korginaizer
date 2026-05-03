@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp1.TodayPage"
+             Title="План на день">
+    <StackLayout Padding="15">
+        <DatePicker x:Name="DatePickerControl"
+                    Date="{Binding SelectedDate, Mode=TwoWay}"
+                    Format="dddd, d MMMM yyyy"
+                    HorizontalOptions="Center"
+                    Margin="0,0,0,20"/>
+
+        <Label Text="Задачи"
+               FontSize="18"
+               FontAttributes="Bold"
+               IsVisible="{Binding HasTasks}"/>
+        <CollectionView ItemsSource="{Binding TodayTasks}"
+                        IsVisible="{Binding HasTasks}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="10"
+                          BackgroundColor="{AppThemeBinding Light=#F0F0F0, Dark=#2C2C2C}"
+                          Margin="0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <CheckBox Grid.Column="0"
+                                  IsChecked="{Binding IsCompleted}"
+                                  VerticalOptions="Center"
+                                  Margin="0,0,10,0"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Title}"
+                               FontSize="14"
+                               VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsCompleted}"
+                                             Value="True">
+                                    <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                    <Setter Property="TextColor" Value="Gray"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Label Text="Нет задач на этот день"
+               IsVisible="{Binding NoTasks}"
+               TextColor="Gray"
+               Margin="0,5,0,15"/>
+
+        <Label Text="События"
+               FontSize="18"
+               FontAttributes="Bold"
+               IsVisible="{Binding HasEvents}"/>
+        <CollectionView ItemsSource="{Binding TodayEvents}"
+                        IsVisible="{Binding HasEvents}">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="10"
+                          BackgroundColor="{AppThemeBinding Light=#F0F0F0, Dark=#2C2C2C}"
+                          Margin="0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0"
+                               Text="*"
+                               Margin="0,0,10,0"
+                               VerticalOptions="Center"/>
+                        <StackLayout Grid.Column="1">
+                            <Label Text="{Binding Title}" FontSize="14"/>
+                            <Label Text="{Binding EventDate, StringFormat='{0:HH:mm}'}"
+                                   FontSize="12"
+                                   TextColor="Gray"/>
+                        </StackLayout>
+
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Label Text="Нет событий на этот день"
+               IsVisible="{Binding NoEvents}"
+               TextColor="Gray"
+               Margin="0,5,0,0"/>
+    </StackLayout>
+</ContentPage>

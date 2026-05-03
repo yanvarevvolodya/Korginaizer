@@ -37,7 +37,6 @@ namespace MauiApp1.Models
         }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-
         private DateTime? _dueDate;
         public DateTime? DueDate
         {
@@ -58,7 +57,6 @@ namespace MauiApp1.Models
             get => string.IsNullOrEmpty(DueTimeString) ? null : TimeSpan.Parse(DueTimeString);
             set => DueTimeString = value?.ToString(@"hh\:mm");
         }
-
         public int TaskListId { get; set; }
         public int Priority { get; set; } = 1;
 
@@ -99,7 +97,6 @@ namespace MauiApp1.Models
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-            // Уведомляем об изменении вычисляемых свойств
             if (propertyName == nameof(DueDate) || propertyName == nameof(DueTimeString))
             {
                 OnPropertyChanged(nameof(FormattedDueDateTime));
@@ -108,7 +105,6 @@ namespace MauiApp1.Models
 
             return true;
         }
-
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

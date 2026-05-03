@@ -36,6 +36,13 @@
 
     <!-- Основной FlyoutItem с табами -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems" >
+        <Tab Title="Сегодня"
+             Icon="tasks_blue.png">
+            <ShellContent ContentTemplate="{DataTemplate local:TodayPage}"
+                          Route="TodayPage" />
+        </Tab>
+
+
         <Tab 
              Icon="tasks_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:TasksPage}" 
@@ -46,13 +53,6 @@
              Icon="calendar_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" 
                           Route="CalendarPage" />
-        </Tab>
-
-        <Tab 
-             
-            Icon="kanban_blue.png">
-            <ShellContent ContentTemplate="{DataTemplate local:KanbanPage}" 
-                          Route="KanbanPage" />
         </Tab>
 
         <Tab Title="Настройки" 

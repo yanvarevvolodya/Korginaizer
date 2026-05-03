@@ -41,7 +41,7 @@ namespace MauiApp1.Models
         [Ignore]
         public int TaskCount { get; set; } = 0;
 
-        // Форматированное отображение (можно использовать в XAML)
+        // Форматированное отображение
         [Ignore]
         public string DisplayName => $"{Name} ({TaskCount})";
 
