@@ -5,12 +5,7 @@
              Title="Задачи">
     <Grid RowDefinitions="Auto, *"
           Padding="15">
-        <!-- Заголовок -->
-        <Label Grid.Row="0"
-               Text="Мои задачи"
-               FontSize="24"
-               FontAttributes="Bold"
-               Margin="0,0,0,15"/>
+        
 
         <!-- Основной контент -->
         <ScrollView Grid.Row="1">

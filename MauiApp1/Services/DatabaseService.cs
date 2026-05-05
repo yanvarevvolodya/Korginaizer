@@ -146,10 +146,10 @@ namespace MauiApp1.Services
         {
             try
             {
-                Debug.WriteLine($"=== СОХРАНЕНИЕ ЗАДАЧИ ===");
-                Debug.WriteLine($"ID: {task.Id}, Title: '{task.Title}'");
-                Debug.WriteLine($"IsCompleted до сохранения: {task.IsCompleted}");
-                Debug.WriteLine($"Stack trace: {Environment.StackTrace}");
+                //Debug.WriteLine($"=== СОХРАНЕНИЕ ЗАДАЧИ ===");
+                //Debug.WriteLine($"ID: {task.Id}, Title: '{task.Title}'");
+                //Debug.WriteLine($"IsCompleted до сохранения: {task.IsCompleted}");
+                //Debug.WriteLine($"Stack trace: {Environment.StackTrace}");
 
                 if (task.Id != 0)
                 {

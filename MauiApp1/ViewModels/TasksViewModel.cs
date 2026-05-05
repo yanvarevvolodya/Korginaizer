@@ -10,6 +10,7 @@ namespace MauiApp1.ViewModels
     public class TasksViewModel : BaseViewModel
     {
         private readonly DatabaseService _databaseService;
+        private readonly NotificationService _notificationService;
         private string _newTaskTitle;
         private ObservableCollection<TaskItem> _tasks;
 
@@ -34,6 +35,7 @@ namespace MauiApp1.ViewModels
         public TasksViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
+            _notificationService = new NotificationService();
             Tasks = new ObservableCollection<TaskItem>();
 
             AddTaskCommand = new Command(async () => await AddTaskAsync());
@@ -103,30 +105,38 @@ namespace MauiApp1.ViewModels
                 return;
             }
 
-            var timeChoice = await Application.Current.MainPage.DisplayActionSheet("Время выполнения", "Отмена", null, "Без времени", "Указать время");
-            TimeSpan? selectedTime = null;
 
-            if (timeChoice == "Указать время")
+            var currentTime = task.DueTime ?? new TimeSpan(12, 0, 0);
+            var timeResult = await Application.Current.MainPage.DisplayPromptAsync(
+                "Время выполнения",
+                "Введите время (чч:мм):",
+                "Сохранить",
+                "Отмена",
+                initialValue: currentTime.ToString(@"hh\:mm"));
+
+            if (string.IsNullOrWhiteSpace(timeResult))
+                return;
+
+            if (!TimeSpan.TryParseExact(timeResult, @"hh\:mm", null, out TimeSpan selectedTime))
             {
-                var currentTime = task.DueTime ?? new TimeSpan(12, 0, 0);
-                var timeResult = await Application.Current.MainPage.DisplayPromptAsync(
-                    "Время выполнения",
-                    "Введите время (чч:мм):",
-                    "Сохранить",
-                    "Отмена",
-                    initialValue: currentTime.ToString(@"hh\:mm"));
-
-                if (!string.IsNullOrWhiteSpace(timeResult) && TimeSpan.TryParseExact(timeResult, @"hh\:mm", null, out TimeSpan parsedTime))
-                    selectedTime = parsedTime;
-                else if (!string.IsNullOrWhiteSpace(timeResult))
-                {
-                    await Application.Current.MainPage.DisplayAlert("Ошибка", "Некорректный формат времени.", "OK");
-                    return;
-                }
+                await Application.Current.MainPage.DisplayAlert("Ошибка", "Некорректный формат времени. Используйте hh:mm", "OK");
+                return;
             }
 
             task.SetDueDateTime(selectedDate, selectedTime);
             await _databaseService.SaveTaskAsync(task);
+            _notificationService.CancelNotification(task.Id);
+            var notifyDateTime = selectedDate.Date + selectedTime;
+            //var notifyDateTimeUtc = notifyDateTime.ToUniversalTime();
+            Debug.WriteLine($"УВЕДОМЛЕНИЕ Вызов планирования: задача {task.Id}, время {notifyDateTime}");
+            Debug.WriteLine($"Текущее время (локальное): {DateTime.Now}");
+            Debug.WriteLine($"Текущее время (UTC): {DateTime.UtcNow}");
+            Debug.WriteLine($"Запланированное время (локальное): {notifyDateTime}");
+            _notificationService.ScheduleNotification(task.Id, task.Title, notifyDateTime);
+            //Debug.WriteLine($"Запланированное время (UTC): {notifyDateTimeUtc}");
+            //_notificationService.ScheduleNotification(task.Id, task.Title, notifyDateTimeUtc);
+            //_notificationService.ScheduleNotification(task.Id, task.Title, DateTime.Now.AddSeconds(5));
+
             LoadTasks();
         }
 
@@ -185,7 +195,7 @@ namespace MauiApp1.ViewModels
             // Статус уже изменён в UI через привязку, просто сохраняем
             await _databaseService.SaveTaskAsync(task);
             // Перезагружаем для правильной сортировки
-            LoadTasks();
+            //LoadTasks();
         }
     }
 }

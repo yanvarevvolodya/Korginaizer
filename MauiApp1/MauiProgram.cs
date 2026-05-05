@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Maui;
 using MauiApp1.Services;
 using MauiApp1.ViewModels;
-using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
+using Plugin.LocalNotification;
+using Plugin.LocalNotification.AndroidOption;
 
 
 namespace MauiApp1
@@ -14,6 +16,21 @@ namespace MauiApp1
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseLocalNotification(config =>
+                {
+                    config.AddAndroid(android =>
+                    {
+                        android.AddChannel(new NotificationChannelRequest
+                        {
+                            Id = "default_channel_id",
+                            Name = "Основные уведомления",
+                            Description = "Напоминания о задачах",
+                            Importance = AndroidImportance.High,
+                            EnableSound = true,
+                            EnableVibration = true
+                        });
+                    });
+                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -23,13 +40,10 @@ namespace MauiApp1
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            // Регистрируем сервисы
+
+            
             builder.Services.AddSingleton<DatabaseService>();
-
-            // Регистрируем ViewModels
             builder.Services.AddTransient<TasksViewModel>();
-
-            // Регистрируем Pages
             builder.Services.AddTransient<TasksPage>();
             builder.Services.AddTransient<CalendarPage>();
             builder.Services.AddTransient<SettingsPage>();

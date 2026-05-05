@@ -14,7 +14,7 @@
     FlyoutBackgroundColor="Transparent"
     Shell.TabBarIsVisible="{OnPlatform Android=true, WinUI=false}"
 
-    Shell.BackgroundColor="{AppThemeBinding Light=White, Dark=Black}"
+    Shell.BackgroundColor="{AppThemeBinding Light=Transparent, Dark=Transparent}"
     Shell.ForegroundColor="{AppThemeBinding Light=#bdbdf2, Dark=White}"
     Shell.TitleColor="{AppThemeBinding Light=Black, Dark=White}"
     Shell.UnselectedColor="{AppThemeBinding Light=#AAAAAA, Dark=#AAAAAA}">
@@ -36,7 +36,7 @@
 
     <!-- Основной FlyoutItem с табами -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems" >
-        <Tab Title="Сегодня"
+        <Tab Title="{OnPlatform Android=Сегодня}"
              Icon="tasks_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:TodayPage}"
                           Route="TodayPage" />

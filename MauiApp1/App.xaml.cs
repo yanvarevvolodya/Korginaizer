@@ -1,16 +1,16 @@
-﻿namespace MauiApp1
+﻿using System.Diagnostics;
+
+namespace MauiApp1
 {
     public partial class App : Application
     {
         public App()
         {
             InitializeComponent();
-            // MainPage НЕ устанавливаем здесь
         }
 
         protected override Window CreateWindow(IActivationState activationState)
         {
-            // Явно создаём Shell и окно
             var shell = new AppShell();
             var window = new Window(shell);
 
@@ -20,6 +20,23 @@
 #endif
 
             return window;
+        }
+
+        protected override void OnStart()
+        {
+            base.OnStart();
+            RequestNotificationPermission();
+        }
+
+        private async void RequestNotificationPermission()
+        {
+#if ANDROID
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+                var status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+                Debug.WriteLine($"[PERM] Разрешение на уведомления: {status}");
+            }
+#endif
         }
     }
 }
