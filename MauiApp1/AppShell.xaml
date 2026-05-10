@@ -22,11 +22,10 @@
     
     <Shell.Behaviors>
         <toolkit:StatusBarBehavior>
-            <!-- Цвет фона StatusBar -->
             <toolkit:StatusBarBehavior.StatusBarColor>
                 <AppThemeBinding Light="White" Dark="#1a1a1a" />
             </toolkit:StatusBarBehavior.StatusBarColor>
-            <!-- Стиль значков: темный для светлого фона и светлый для темного -->
+            
             <toolkit:StatusBarBehavior.StatusBarStyle>
                 <AppThemeBinding Light="DarkContent" Dark="LightContent" />
             </toolkit:StatusBarBehavior.StatusBarStyle>
@@ -34,7 +33,6 @@
     </Shell.Behaviors>
 
 
-    <!-- Основной FlyoutItem с табами -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems" >
         <Tab Title="{OnPlatform Android=Сегодня}"
              Icon="tasks_blue.png">
@@ -43,20 +41,20 @@
         </Tab>
 
 
-        <Tab 
+        <Tab Title="{OnPlatform Android=Задачи}"
              Icon="tasks_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:TasksPage}" 
                           Route="TasksPage" />
         </Tab>
 
-        <Tab 
+        <Tab Title="{OnPlatform Android=Календарь}"
              Icon="calendar_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:CalendarPage}" 
                           Route="CalendarPage" />
         </Tab>
 
-        <Tab Title="Настройки" 
-             IsVisible="False"
+        <Tab Title="{OnPlatform Android=Настройки}" 
+             IsVisible="True"
              Icon="settings_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" 
                           Route="SettingsPage" />

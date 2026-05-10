@@ -13,6 +13,9 @@ namespace MauiApp1.ViewModels
         private readonly NotificationService _notificationService;
         private string _newTaskTitle;
         private ObservableCollection<TaskItem> _tasks;
+        private ObservableCollection<TaskCategory> _taskCategories;
+        private TaskCategory _selectedCategory;
+        private List<TaskItem> _allTasks = new List<TaskItem>();
 
         public ObservableCollection<TaskItem> Tasks
         {
@@ -20,18 +23,38 @@ namespace MauiApp1.ViewModels
             set => SetProperty(ref _tasks, value);
         }
 
+        public ObservableCollection<TaskCategory> TaskCategories
+        {
+            get => _taskCategories;
+            set { _taskCategories = value; OnPropertyChanged(); }
+        }
+
+        public TaskCategory SelectedCategory
+        {
+            get => _selectedCategory;
+            set
+            {
+                if (_selectedCategory != value)
+                {
+                    _selectedCategory = value;
+                    OnPropertyChanged();
+                    FilterTasks();
+                }
+            }
+        }
         public string NewTaskTitle
         {
             get => _newTaskTitle;
             set => SetProperty(ref _newTaskTitle, value);
         }
-
+        
         public ICommand AddTaskCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand SetDueDateCommand { get; }
         public ICommand ShowTaskMenuCommand { get; }
         public ICommand ToggleTaskStatusCommand { get; }
-
+        public ICommand AddCategoryCommand { get; }
+        
         public TasksViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
@@ -43,22 +66,46 @@ namespace MauiApp1.ViewModels
             SetDueDateCommand = new Command<TaskItem>(async (task) => await SetDueDateForTaskAsync(task));
             ShowTaskMenuCommand = new Command<TaskItem>(async (task) => await ShowTaskMenuAsync(task));
             ToggleTaskStatusCommand = new Command<TaskItem>(async (task) => await ToggleTaskStatusAsync(task));
+            AddCategoryCommand = new Command(async () => await AddCategoryAsync()); 
 
-            LoadTasks();
+            _ = LoadTasks();
+            _ = LoadCategories();
         }
-
-        private async void LoadTasks()
+        private async Task LoadTasks()
         {
             var allTasks = await _databaseService.GetAllTasksAsync();
-            Tasks.Clear();
-            var sorted = allTasks
+            _allTasks = allTasks;
+            FilterTasks();
+        }
+
+        private async Task LoadCategories()
+        {
+            var cats = await _databaseService.GetCategoriesAsync();
+            var allCats = new List<TaskCategory> { new TaskCategory { Id = 0, Name = "Все категории" } };
+            allCats.AddRange(cats);
+            TaskCategories = new ObservableCollection<TaskCategory>(allCats);
+            if (SelectedCategory == null)
+                SelectedCategory = TaskCategories.FirstOrDefault();
+        }
+        private void FilterTasks()
+        {
+            if (_allTasks == null) return;
+
+            IEnumerable<TaskItem> filteredTasks;
+            if (SelectedCategory == null || SelectedCategory.Id == 0)
+                filteredTasks = _allTasks;
+            else
+                filteredTasks = _allTasks.Where(t => t.CategoryId == SelectedCategory.Id);
+
+            var sorted = filteredTasks
                 .OrderBy(t => t.IsCompleted)
                 .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
                 .ThenBy(t => t.CreatedDate);
-            foreach (var t in sorted)
-                Tasks.Add(t);
-        }
 
+            Tasks.Clear();
+            foreach (var task in sorted)
+                Tasks.Add(task);
+        }
         private async Task AddTaskAsync()
         {
             if (string.IsNullOrWhiteSpace(NewTaskTitle))
@@ -69,11 +116,29 @@ namespace MauiApp1.ViewModels
                 Title = NewTaskTitle.Trim(),
                 Description = "",
                 TaskListId = await _databaseService.GetOrCreateDefaultListIdAsync(), // создаст или вернёт id дефолтного списка
-                CreatedDate = DateTime.Now
+                CreatedDate = DateTime.Now,
+                CategoryId = 0
             };
+
             await _databaseService.SaveTaskAsync(newTask);
             NewTaskTitle = "";
-            LoadTasks();
+            await LoadTasks();
+        }
+
+        private async Task AddCategoryAsync()
+        {
+            string categoryName = await Application.Current.MainPage.DisplayPromptAsync(
+                "Новая категория",
+                "Введите название категории:",
+                "Создать",
+                "Отмена");
+
+            if (string.IsNullOrWhiteSpace(categoryName))
+                return;
+
+            var newCategory = new TaskCategory { Name = categoryName.Trim() };
+            await _databaseService.SaveCategoryAsync(newCategory);
+            await LoadCategories();
         }
 
         private async Task DeleteTaskAsync(TaskItem task)
@@ -104,7 +169,6 @@ namespace MauiApp1.ViewModels
                 await Application.Current.MainPage.DisplayAlert("Ошибка", "Некорректный формат даты.", "OK");
                 return;
             }
-
 
             var currentTime = task.DueTime ?? new TimeSpan(12, 0, 0);
             var timeResult = await Application.Current.MainPage.DisplayPromptAsync(
@@ -149,7 +213,9 @@ namespace MauiApp1.ViewModels
                 null,
                 "Подробности",
                 "Редактировать",
-                "Удалить");
+                "Назначить категорию"
+                //,"Удалить"
+                );
 
             switch (action)
             {
@@ -162,7 +228,34 @@ namespace MauiApp1.ViewModels
                 case "Удалить":
                     await DeleteTaskAsync(task);
                     break;
+                case "Назначить категорию":
+                    await AssignCategoryToTaskAsync(task);
+                    break;
             }
+        }
+        private async Task AssignCategoryToTaskAsync(TaskItem task)
+        {
+            var categories = await _databaseService.GetCategoriesAsync();
+            if (!categories.Any())
+            {
+                await Application.Current.MainPage.DisplayAlert("Нет категорий", "Создайте категорию через кнопку '+'", "ОК");
+                return;
+            }
+
+            var categoryNames = categories.Select(c => c.Name).ToArray();
+            var selectedCategoryName = await Application.Current.MainPage.DisplayActionSheet(
+                "Выберите категорию",
+                "Отмена",
+                null,
+                categoryNames);
+
+            if (string.IsNullOrEmpty(selectedCategoryName) || selectedCategoryName == "Отмена")
+                return;
+
+            var selectedCat = categories.FirstOrDefault(c => c.Name == selectedCategoryName);
+            task.CategoryId = selectedCat?.Id ?? 0;
+            await _databaseService.SaveTaskAsync(task);
+            await LoadTasks();
         }
 
         private async Task ShowTaskDetailsAsync(TaskItem task)
@@ -173,7 +266,8 @@ namespace MauiApp1.ViewModels
                 details.AppendLine($"\nОписание: {task.Description}");
             if (task.DueDate.HasValue)
                 details.AppendLine($"\nСрок: {task.FormattedDueDateTime}");
-            details.AppendLine($"\nСтатус: {(task.IsCompleted ? "Выполнена" : "Активна")}");
+            //details.AppendLine($"\nСтатус: {(task.IsCompleted ? "Выполнена" : "Активна")}");
+            details.AppendLine($"\nДата создания: {task.CreatedDate:dd.MM.yyyy HH:mm}");
             await Application.Current.MainPage.DisplayAlert("Подробности", details.ToString(), "Закрыть");
         }
 
@@ -186,13 +280,12 @@ namespace MauiApp1.ViewModels
             task.Title = newTitle.Trim();
             task.Description = newDescription?.Trim() ?? "";
             await _databaseService.SaveTaskAsync(task);
-            LoadTasks();
+            await LoadTasks();
         }
 
         private async Task ToggleTaskStatusAsync(TaskItem task)
         {
             if (task == null) return;
-            // Статус уже изменён в UI через привязку, просто сохраняем
             await _databaseService.SaveTaskAsync(task);
             // Перезагружаем для правильной сортировки
             //LoadTasks();

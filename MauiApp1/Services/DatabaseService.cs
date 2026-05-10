@@ -42,6 +42,7 @@ namespace MauiApp1.Services
                     await _database.CreateTableAsync<TaskList>();
                     await _database.CreateTableAsync<TaskItem>();
                     await _database.CreateTableAsync<CalendarEvent>();
+                    await _database.CreateTableAsync<TaskCategory>();
 
                     Debug.WriteLine($"Таблица CalendarEvent создана. Путь к БД: {dbPath}");
 
@@ -182,6 +183,31 @@ namespace MauiApp1.Services
                 Debug.WriteLine($"Ошибка удаления задачи: {ex.Message}");
                 return 0;
             }
+        }
+
+        // TaskCategory
+        public async Task<List<TaskCategory>> GetCategoriesAsync()
+        {
+            return await _database.Table<TaskCategory>().ToListAsync();
+        }
+
+        public async Task<int> SaveCategoryAsync(TaskCategory taskCategory)
+        {
+            if (taskCategory.Id != 0)
+                return await _database.UpdateAsync(taskCategory);
+            else
+                return await _database.InsertAsync(taskCategory);
+        }
+
+        public async Task<int> DeleteCategoryAsync(TaskCategory taskCategory)
+        {
+            var tasks = await _database.Table<TaskItem>().Where(t => t.CategoryId == taskCategory.Id).ToListAsync();
+            foreach (var task in tasks)
+            {
+                task.CategoryId = 0;
+                await _database.UpdateAsync(task);
+            }
+            return await _database.DeleteAsync(taskCategory);
         }
 
         // Методы для CalendarEvent

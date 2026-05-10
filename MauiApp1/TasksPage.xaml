@@ -6,20 +6,31 @@
     <Grid RowDefinitions="Auto, *"
           Padding="15">
         
-
-        <!-- Основной контент -->
         <ScrollView Grid.Row="1">
             <StackLayout Spacing="15">
-                <!-- Добавление новой задачи -->
-                <Grid ColumnDefinitions="*, Auto">
+                <Grid ColumnDefinitions="*, Auto, *, Auto">
                     <Entry Placeholder="Добавить задачу..."
                            Text="{Binding NewTaskTitle}"
                            Completed="OnEntryCompleted"/>
+                    
                     <Button Grid.Column="1"
                             Text="+ Задача"
                             Command="{Binding AddTaskCommand}"
                             WidthRequest="80"/>
+
+                    <Picker x:Name="CategoryFilter"
+                            Grid.Column="2"
+                            ItemsSource="{Binding TaskCategories}"
+                            ItemDisplayBinding="{Binding Name}"
+                            SelectedItem="{Binding SelectedCategory}"
+                            HorizontalOptions="FillAndExpand"/>
+                    <Button Text="+"
+                            Grid.Column="3"
+                            Command="{Binding AddCategoryCommand}"
+                            WidthRequest="50"/>
                 </Grid>
+
+                
 
                 <!-- Список задач -->
                 <CollectionView ItemsSource="{Binding Tasks}">

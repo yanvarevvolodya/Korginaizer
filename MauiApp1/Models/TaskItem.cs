@@ -87,6 +87,8 @@ namespace MauiApp1.Models
             DueTime = time;
         }
 
+        public int CategoryId { get; set; } = 0;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
