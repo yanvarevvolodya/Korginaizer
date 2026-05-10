@@ -16,6 +16,7 @@ namespace MauiApp1.ViewModels
         private ObservableCollection<TaskCategory> _taskCategories;
         private TaskCategory _selectedCategory;
         private List<TaskItem> _allTasks = new List<TaskItem>();
+        private Dictionary<int, string> _categoryDict = new();
 
         public ObservableCollection<TaskItem> Tasks
         {
@@ -47,14 +48,15 @@ namespace MauiApp1.ViewModels
             get => _newTaskTitle;
             set => SetProperty(ref _newTaskTitle, value);
         }
-        
+
         public ICommand AddTaskCommand { get; }
         public ICommand DeleteTaskCommand { get; }
         public ICommand SetDueDateCommand { get; }
         public ICommand ShowTaskMenuCommand { get; }
         public ICommand ToggleTaskStatusCommand { get; }
         public ICommand AddCategoryCommand { get; }
-        
+        public ICommand ManageCategoriesCommand { get; }
+
         public TasksViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
@@ -66,7 +68,8 @@ namespace MauiApp1.ViewModels
             SetDueDateCommand = new Command<TaskItem>(async (task) => await SetDueDateForTaskAsync(task));
             ShowTaskMenuCommand = new Command<TaskItem>(async (task) => await ShowTaskMenuAsync(task));
             ToggleTaskStatusCommand = new Command<TaskItem>(async (task) => await ToggleTaskStatusAsync(task));
-            AddCategoryCommand = new Command(async () => await AddCategoryAsync()); 
+            AddCategoryCommand = new Command(async () => await AddCategoryAsync());
+            ManageCategoriesCommand = new Command(async () => await ManageCategoriesAsync());
 
             _ = LoadTasks();
             _ = LoadCategories();
@@ -74,6 +77,15 @@ namespace MauiApp1.ViewModels
         private async Task LoadTasks()
         {
             var allTasks = await _databaseService.GetAllTasksAsync();
+
+            var categories = await _databaseService.GetCategoriesAsync();
+            _categoryDict = categories.ToDictionary(c => c.Id, c => c.Name);
+
+            foreach (var task in allTasks)
+            {
+                task.CategoryName = _categoryDict.ContainsKey(task.CategoryId) ? _categoryDict[task.CategoryId] : "";
+            }
+
             _allTasks = allTasks;
             FilterTasks();
         }
@@ -100,7 +112,8 @@ namespace MauiApp1.ViewModels
             var sorted = filteredTasks
                 .OrderBy(t => t.IsCompleted)
                 .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
-                .ThenBy(t => t.CreatedDate);
+                .ThenBy(t => t.CreatedDate)
+                .ThenBy(t => t.CategoryName);
 
             Tasks.Clear();
             foreach (var task in sorted)
@@ -139,6 +152,79 @@ namespace MauiApp1.ViewModels
             var newCategory = new TaskCategory { Name = categoryName.Trim() };
             await _databaseService.SaveCategoryAsync(newCategory);
             await LoadCategories();
+            await LoadTasks();
+        }
+
+        private async Task ManageCategoriesAsync()
+        {
+            var categories = await _databaseService.GetCategoriesAsync();
+            if (!categories.Any())
+            {
+                await Application.Current.MainPage.DisplayAlert("Нет категорий", "Создайте категорию через кнопку '+'", "OK");
+                return;
+            }
+
+            var categoryNames = categories.Select(c => c.Name).ToArray();
+            var selectedName = await Application.Current.MainPage.DisplayActionSheet(
+                "Управление категориями",
+                "Отмена",
+                null,
+                categoryNames);
+
+            if (string.IsNullOrEmpty(selectedName) || selectedName == "Отмена")
+                return;
+
+            var selectedCat = categories.FirstOrDefault(c => c.Name == selectedName);
+            if (selectedCat == null) return;
+
+            var action = await Application.Current.MainPage.DisplayActionSheet(
+                $"Категория: {selectedCat.Name}",
+                "Отмена",
+                null,
+                "Переименовать",
+                "Удалить");
+
+            switch (action)
+            {
+                case "Переименовать":
+                    await RenameCategoryAsync(selectedCat);
+                    break;
+                case "Удалить":
+                    await DeleteCategoryAsync(selectedCat);
+                    break;
+            }
+        }
+
+        private async Task RenameCategoryAsync(TaskCategory category)
+        {
+            var newName = await Application.Current.MainPage.DisplayPromptAsync(
+                "Переименование",
+                "Новое название категории:",
+                "Сохранить",
+                "Отмена",
+                initialValue: category.Name);
+            if (string.IsNullOrEmpty(newName) || newName == category.Name)
+                return;
+
+            category.Name = newName.Trim();
+            await _databaseService.SaveCategoryAsync(category);
+
+            await LoadCategories();
+            await LoadTasks();
+        }
+
+        private async Task DeleteCategoryAsync(TaskCategory category)
+        {
+            bool confirm = await Application.Current.MainPage.DisplayAlert(
+                "Удаление категории",
+                $"Удалить категорию '{category.Name}'? Задачи останутся, но будут без категории.",
+                "Да",
+                "Нет");
+            if (!confirm) return;
+
+            await _databaseService.DeleteCategoryAsync(category);
+            await LoadCategories();
+            await LoadTasks();
         }
 
         private async Task DeleteTaskAsync(TaskItem task)
@@ -214,7 +300,6 @@ namespace MauiApp1.ViewModels
                 "Подробности",
                 "Редактировать",
                 "Назначить категорию"
-                //,"Удалить"
                 );
 
             switch (action)
@@ -236,24 +321,28 @@ namespace MauiApp1.ViewModels
         private async Task AssignCategoryToTaskAsync(TaskItem task)
         {
             var categories = await _databaseService.GetCategoriesAsync();
-            if (!categories.Any())
-            {
-                await Application.Current.MainPage.DisplayAlert("Нет категорий", "Создайте категорию через кнопку '+'", "ОК");
-                return;
-            }
+            var categoryNames = new List<string> { "Без категории" };
+            categoryNames.AddRange(categories.Select(c => c.Name));
 
-            var categoryNames = categories.Select(c => c.Name).ToArray();
             var selectedCategoryName = await Application.Current.MainPage.DisplayActionSheet(
                 "Выберите категорию",
                 "Отмена",
                 null,
-                categoryNames);
+                categoryNames.ToArray());
 
             if (string.IsNullOrEmpty(selectedCategoryName) || selectedCategoryName == "Отмена")
                 return;
 
-            var selectedCat = categories.FirstOrDefault(c => c.Name == selectedCategoryName);
-            task.CategoryId = selectedCat?.Id ?? 0;
+            if (selectedCategoryName == "Без категории")
+            {
+                task.CategoryId = 0;
+            }
+            else
+            {
+                var selectedCat = categories.FirstOrDefault(c => c.Name == selectedCategoryName);
+                task.CategoryId = selectedCat?.Id ?? 0;
+            }
+
             await _databaseService.SaveTaskAsync(task);
             await LoadTasks();
         }

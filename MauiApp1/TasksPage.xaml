@@ -8,8 +8,9 @@
         
         <ScrollView Grid.Row="1">
             <StackLayout Spacing="15">
-                <Grid ColumnDefinitions="*, Auto, *, Auto">
+                <Grid ColumnDefinitions="*, Auto, *, Auto, Auto">
                     <Entry Placeholder="Добавить задачу..."
+                           Grid.Column="0"
                            Text="{Binding NewTaskTitle}"
                            Completed="OnEntryCompleted"/>
                     
@@ -27,6 +28,10 @@
                     <Button Text="+"
                             Grid.Column="3"
                             Command="{Binding AddCategoryCommand}"
+                            WidthRequest="50"/>
+                    <Button Grid.Column="4"
+                            Text="⚙️"
+                            Command="{Binding ManageCategoriesCommand}"
                             WidthRequest="50"/>
                 </Grid>
 
@@ -63,6 +68,11 @@
                                                 </DataTrigger>
                                             </Label.Triggers>
                                         </Label>
+
+                                        <Label Text="{Binding CategoryName}"
+                                               FontSize="11"
+                                               TextColor="{AppThemeBinding Light=#555, Dark=#AAA}"
+                                               IsVisible="{Binding CategoryName, Converter={StaticResource StringToBoolConverter}}"/>
 
                                         <!-- Дата и описание -->
                                         <Grid ColumnDefinitions="Auto, *">

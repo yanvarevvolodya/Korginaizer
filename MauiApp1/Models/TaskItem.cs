@@ -89,6 +89,9 @@ namespace MauiApp1.Models
 
         public int CategoryId { get; set; } = 0;
 
+        [Ignore]
+        public string CategoryName { get; set; } = "";
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
