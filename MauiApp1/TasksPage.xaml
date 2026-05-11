@@ -24,8 +24,6 @@
                             WidthRequest="50"/>
                 </Grid>
 
-                
-
                 <!-- Список задач -->
                 <CollectionView ItemsSource="{Binding Tasks}">
                     <CollectionView.ItemTemplate>
@@ -122,7 +120,7 @@
               ColumnDefinitions="*, Auto">
                 <Entry Placeholder="Добавить задачу..."
                    Grid.Column="0"
-                   Text="{Binding NewTaskTitle}"
+                   Text="{Binding NewTaskTitle}" 
                    Completed="OnEntryCompleted"/>
 
                 <Button Grid.Column="1"

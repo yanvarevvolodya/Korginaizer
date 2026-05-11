@@ -52,6 +52,7 @@ namespace MauiApp1.Services
                 new ToastContentBuilder()
                     .AddText("Напоминание о задаче")
                     .AddText($"Задача \"{title}\" запланирована на {scheduledTime:HH:mm}")
+                    .SetToastScenario(ToastScenario.Reminder)
                     .Show();
                 Debug.WriteLine("Windows Toast показан");
             }
