@@ -3,33 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp1.TasksPage"
              Title="Задачи">
-    <Grid RowDefinitions="Auto, *"
+    <Grid RowDefinitions="Auto, *, Auto"
           Padding="15">
-        
         <ScrollView Grid.Row="1">
             <StackLayout Spacing="15">
-                <Grid ColumnDefinitions="*, Auto, *, Auto, Auto">
-                    <Entry Placeholder="Добавить задачу..."
-                           Grid.Column="0"
-                           Text="{Binding NewTaskTitle}"
-                           Completed="OnEntryCompleted"/>
-                    
-                    <Button Grid.Column="1"
-                            Text="+ Задача"
-                            Command="{Binding AddTaskCommand}"
-                            WidthRequest="80"/>
-
+                <Grid ColumnDefinitions="*, Auto, Auto">
                     <Picker x:Name="CategoryFilter"
-                            Grid.Column="2"
+                            Grid.Column="0"
                             ItemsSource="{Binding TaskCategories}"
                             ItemDisplayBinding="{Binding Name}"
                             SelectedItem="{Binding SelectedCategory}"
                             HorizontalOptions="FillAndExpand"/>
                     <Button Text="+"
-                            Grid.Column="3"
+                            Grid.Column="1"
                             Command="{Binding AddCategoryCommand}"
                             WidthRequest="50"/>
-                    <Button Grid.Column="4"
+                    <Button Grid.Column="2"
                             Text="⚙️"
                             Command="{Binding ManageCategoriesCommand}"
                             WidthRequest="50"/>
@@ -123,5 +112,24 @@
                 </CollectionView>
             </StackLayout>
         </ScrollView>
+
+        <Border Grid.Row="2"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{AppThemeBinding Light=#e9e9f7, Dark=#374045}"
+                Background="{AppThemeBinding Light=Transparent, Dark=#374045}">
+            <Grid  
+              ColumnDefinitions="*, Auto">
+                <Entry Placeholder="Добавить задачу..."
+                   Grid.Column="0"
+                   Text="{Binding NewTaskTitle}"
+                   Completed="OnEntryCompleted"/>
+
+                <Button Grid.Column="1"
+                    Text="+ Задача"
+                    Command="{Binding AddTaskCommand}"
+                    WidthRequest="90"/>
+            </Grid>
+        </Border>
     </Grid>
 </ContentPage>
