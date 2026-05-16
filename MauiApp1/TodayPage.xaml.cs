@@ -11,4 +11,14 @@ public partial class TodayPage : ContentPage
 		var dbService = new DatabaseService();
 		BindingContext = new TodayViewModel(dbService);
 	}
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+		var vm = BindingContext as TodayViewModel;
+		if (vm != null)
+		{
+			_ = vm.LoadDataForDate();
+        }
+    }
 }

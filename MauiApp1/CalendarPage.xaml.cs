@@ -1,4 +1,4 @@
-using System.Diagnostics; // Добавляем это!
+using System.Diagnostics;
 using MauiApp1.Models;
 using MauiApp1.Services;
 using MauiApp1.ViewModels;
@@ -236,9 +236,8 @@ namespace MauiApp1
                 await _viewModel.InitializeCalendarAsync();
                 CreateCalendarGrid();
 
-                // Для отладки
-                var db = new DatabaseService();
-                await db.DebugCalendarEventsAsync();
+                //var db = new DatabaseService();
+                //await db.DebugCalendarEventsAsync();
             }
         }
     }

@@ -9,26 +9,28 @@ namespace MauiApp1.ViewModels
     public class CalendarViewModel : BaseViewModel
     {
         private readonly DatabaseService _databaseService;
+        private readonly NotificationService _notificationService;
         private DateTime _currentMonth;
         private DateTime _selectedDate;
-        private ObservableCollection<CalendarEvent> _eventsForSelectedDate;
+        private ObservableCollection<TaskItem> _eventsForSelectedDate;
         private ObservableCollection<CalendarDay> _calendarDays;
-        private List<CalendarEvent> _monthEvents;
+        private List<TaskItem> _monthEvents;
 
         public CalendarViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
+            _notificationService = new NotificationService();
 
             _currentMonth = DateTime.Now;
             _selectedDate = DateTime.Now.Date;
-            _eventsForSelectedDate = new ObservableCollection<CalendarEvent>();
+            _eventsForSelectedDate = new ObservableCollection<TaskItem>();
             _calendarDays = new ObservableCollection<CalendarDay>();
-            _monthEvents = new List<CalendarEvent>();
+            _monthEvents = new List<TaskItem>();
 
             PreviousMonthCommand = new Command(async () => await ChangeMonth(-1));
             NextMonthCommand = new Command(async () => await ChangeMonth(1));
             AddEventCommand = new Command(async () => await AddEventAsync());
-            DeleteEventCommand = new Command<CalendarEvent>(async (e) => await DeleteEventAsync(e));
+            DeleteEventCommand = new Command<TaskItem>(async (e) => await DeleteEventAsync(e));
             SelectDateCommand = new Command<DateTime>((date) => SelectDate(date));
             SelectDayCommand = new Command<CalendarDay>((day) => SelectDay(day));
 
@@ -61,7 +63,7 @@ namespace MauiApp1.ViewModels
             }
         }
 
-        public ObservableCollection<CalendarEvent> EventsForSelectedDate
+        public ObservableCollection<TaskItem> EventsForSelectedDate
         {
             get => _eventsForSelectedDate;
             set => SetProperty(ref _eventsForSelectedDate, value);
@@ -96,20 +98,23 @@ namespace MauiApp1.ViewModels
         {
             try
             {
-                _monthEvents = await _databaseService.GetCalendarEventsByMonthAsync(
+                _monthEvents = await _databaseService.GetTasksByMonthAsync(
                     CurrentMonth.Year, CurrentMonth.Month);
-                Debug.WriteLine($"Загружено {_monthEvents.Count} событий за месяц");
+                Debug.WriteLine($"Загружено задач за {CurrentMonth:MMMM yyyy}: {_monthEvents.Count}");
+                foreach (var task in _monthEvents)
+                {
+                    Debug.WriteLine($" - {task.Title} на {task.DueDate:dd.MM.yyyy}");
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Ошибка загрузки событий месяца: {ex.Message}");
-                _monthEvents = new List<CalendarEvent>();
+                Debug.WriteLine($"Ошибка: {ex.Message}");
+                _monthEvents = new List<TaskItem>();
             }
         }
 
         public void GenerateCalendarDays()
         {
-            // Временная коллекция для новых дней
             var newDays = new List<CalendarDay>();
 
             DateTime firstDayOfMonth = new DateTime(CurrentMonth.Year, CurrentMonth.Month, 1);
@@ -133,7 +138,6 @@ namespace MauiApp1.ViewModels
                 currentDisplayDate = currentDisplayDate.AddDays(1);
             }
 
-            // ВАЖНО: Полностью заменяем коллекцию
             CalendarDays.Clear();
 
             foreach (var day in newDays)
@@ -143,13 +147,12 @@ namespace MauiApp1.ViewModels
 
             Debug.WriteLine($"Сгенерировано {CalendarDays.Count} дней для {CurrentMonth:MMMM yyyy}");
 
-            // Явно уведомляем об изменении коллекции
             OnPropertyChanged(nameof(CalendarDays));
         }
 
         private int CountEventsForDate(DateTime date)
         {
-            return _monthEvents?.Count(e => e.EventDate.Date == date.Date) ?? 0;
+            return _monthEvents?.Count(t => t.DueDate.HasValue && t.DueDate.Value.Date == date.Date) ?? 0;
         }
 
         private void SelectDay(CalendarDay day)
@@ -187,18 +190,14 @@ namespace MauiApp1.ViewModels
                 EventsForSelectedDate.Clear();
                 Debug.WriteLine($"Загрузка событий для: {SelectedDate:dd.MM.yyyy}");
 
-                // Загружаем реальные события из БД
-                var events = await _databaseService.GetCalendarEventsAsync(SelectedDate);
+                var events = await _databaseService.GetTasksForDateAsync(SelectedDate);
                 Debug.WriteLine($"Найдено в БД: {events.Count} событий");
 
                 foreach (var ev in events)
                 {
-                    Debug.WriteLine($"Добавляем: {ev.Title} ({ev.EventDate:dd.MM.yyyy})");
+                    Debug.WriteLine($"Добавляем: {ev.Title} ({ev.DueDate:dd.MM.yyyy})");
                     EventsForSelectedDate.Add(ev);
                 }
-
-                // НИКАКИХ ТЕСТОВЫХ ДАННЫХ!
-                // Если событий нет - список будет пустым
             }
             catch (Exception ex)
             {
@@ -210,112 +209,88 @@ namespace MauiApp1.ViewModels
 
         private async Task AddEventAsync()
         {
-            // Просто используем выбранную дату в календаре
             DateTime eventDate = SelectedDate;
 
             string title = await Application.Current.MainPage.DisplayPromptAsync(
                 "Новое событие",
-                $"Введите название события для {SelectedDate:dd.MM.yyyy}:",
+                $"Введите название задачи для {SelectedDate:dd.MM.yyyy}:",
                 "Добавить",
                 "Отмена",
-                "Например: Встреча с клиентом");
+                "Например: Купить продукты");
 
             if (string.IsNullOrWhiteSpace(title))
                 return;
 
-            // Спрашиваем только время
             string time = await Application.Current.MainPage.DisplayPromptAsync(
                 "Время события",
-                "Введите время (например: 14:30) или оставьте пустым:",
+                "Введите время (например: чч:мм) или оставьте пустым:",
                 "Добавить",
                 "Без времени",
                 "");
 
-            TimeSpan? startTime = null;
-            DateTime finalEventDate = eventDate;
+            TimeSpan? dueTime = null;
 
             if (!string.IsNullOrWhiteSpace(time) && TimeSpan.TryParse(time, out var parsedTime))
-            {
-                startTime = parsedTime;
-                finalEventDate = new DateTime(eventDate.Year, eventDate.Month, eventDate.Day,
-                                             parsedTime.Hours, parsedTime.Minutes, 0);
-            }
+                dueTime = parsedTime;
 
             try
             {
-                var newEvent = new CalendarEvent
+                var newTask = new TaskItem
                 {
                     Title = title.Trim(),
-                    EventDate = finalEventDate,
-                    StartTime = startTime,
+                    DueDate = eventDate,
+                    DueTime = dueTime,
                     CreatedDate = DateTime.Now,
-                    Color = GetRandomColor(),
-                    IsAllDay = string.IsNullOrWhiteSpace(time)
+                    IsCompleted = false,
+                    TaskListId = await _databaseService.GetOrCreateDefaultListIdAsync()
                 };
 
-                Debug.WriteLine($"Создаем событие: {newEvent.Title} на {newEvent.EventDate:dd.MM.yyyy HH:mm}");
-
-                // Сохраняем в БД
-                int result = await _databaseService.SaveCalendarEventAsync(newEvent);
+                int result = await _databaseService.SaveTaskAsync(newTask);
 
                 if (result > 0)
                 {
-                    // Обновляем UI
+                    if (newTask.DueDate.HasValue && newTask.DueTime.HasValue)
+                    {
+                        var notifyDateTime = newTask.DueDate.Value.Date + newTask.DueTime.Value;
+                        _notificationService.CancelNotification(newTask.Id);
+                        _notificationService.ScheduleNotification(newTask.Id, newTask.Title, notifyDateTime);
+                    }
+
                     await LoadEventsForSelectedDateAsync();
                     await LoadMonthEventsAsync();
                     GenerateCalendarDays();
-
-                    Debug.WriteLine($"Событие успешно добавлено на {finalEventDate:dd.MM.yyyy}");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Ошибка: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert("Ошибка",
-                    $"Не удалось добавить событие: {ex.Message}", "OK");
+                    ex.Message, "OK");
             }
         }
 
-        private async Task DeleteEventAsync(CalendarEvent calendarEvent)
+        private async Task DeleteEventAsync(TaskItem task)
         {
             bool confirm = await Application.Current.MainPage.DisplayAlert(
                 "Удаление",
-                $"Удалить событие '{calendarEvent.Title}'?",
+                $"Удалить задачу '{task.Title}'?",
                 "Да", "Нет");
 
             if (confirm)
             {
                 try
                 {
-                    // Удаляем из БД
-                    await _databaseService.DeleteCalendarEventAsync(calendarEvent);
-
-                    // Удаляем из списка
-                    EventsForSelectedDate.Remove(calendarEvent);
-
-                    // Обновляем индикаторы на календаре
+                    _notificationService.CancelNotification(task.Id);
+                    await _databaseService.DeleteTaskAsync(task);
+                    EventsForSelectedDate.Remove(task);
                     await LoadMonthEventsAsync();
                     GenerateCalendarDays();
-
-                    // Обновляем UI
-                    OnPropertyChanged(nameof(CalendarDays));
                 }
                 catch (Exception ex)
                 {
                     await Application.Current.MainPage.DisplayAlert("Ошибка",
-                        $"Не удалось удалить событие: {ex.Message}", "OK");
+                         ex.Message, "OK");
                 }
             }
-        }
-
-        private string GetRandomColor()
-        {
-            var colors = new[]
-            {
-                "#007ACC", "#28A745", "#DC3545", "#FFC107",
-                "#6F42C1", "#17A2B8", "#FD7E14"
-            };
-            return colors[new Random().Next(colors.Length)];
         }
     }
 }

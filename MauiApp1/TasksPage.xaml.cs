@@ -48,5 +48,15 @@ namespace MauiApp1
                 }
             }
         }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            var vm = BindingContext as TasksViewModel;
+            if (vm != null)
+            {
+                _ = vm.LoadTasks();
+            }
+        }
     }
 }

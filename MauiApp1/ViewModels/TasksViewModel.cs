@@ -74,7 +74,7 @@ namespace MauiApp1.ViewModels
             _ = LoadTasks();
             _ = LoadCategories();
         }
-        private async Task LoadTasks()
+        public async Task LoadTasks()
         {
             var allTasks = await _databaseService.GetAllTasksAsync();
 
