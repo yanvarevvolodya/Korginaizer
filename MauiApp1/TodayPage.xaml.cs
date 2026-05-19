@@ -1,3 +1,4 @@
+using MauiApp1.Models;
 using MauiApp1.Services;
 using MauiApp1.ViewModels;
 

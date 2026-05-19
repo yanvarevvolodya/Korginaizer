@@ -297,25 +297,29 @@ namespace MauiApp1.ViewModels
                 $"Задача: {task.Title}",
                 "Отмена",
                 null,
-                "Подробности",
-                "Редактировать",
-                "Назначить категорию"
-                );
+                "📅 Установить дату/время",
+                "✏️ Редактировать",
+                "📂 Назначить категорию",
+                "ℹ️ Подробности",
+                "🗑 Удалить");
 
             switch (action)
             {
-                case "Подробности":
-                    await ShowTaskDetailsAsync(task);
+                case "📅 Установить дату/время":
+                    await SetDueDateForTaskAsync(task);
                     break;
-                case "Редактировать":
+                case "✏️ Редактировать":
                     await EditTaskAsync(task);
                     break;
-                case "Удалить":
-                    await DeleteTaskAsync(task);
-                    break;
-                case "Назначить категорию":
+                case "📂 Назначить категорию":
                     await AssignCategoryToTaskAsync(task);
                     break;
+                case "ℹ️ Подробности":
+                    await ShowTaskDetailsAsync(task);
+                    break;
+                case "🗑 Удалить":
+                    await DeleteTaskAsync(task);
+                    break; 
             }
         }
         private async Task AssignCategoryToTaskAsync(TaskItem task)

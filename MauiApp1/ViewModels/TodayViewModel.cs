@@ -40,21 +40,49 @@ namespace MauiApp1.ViewModels
         public bool HasTasks { get => _hasTasks; set { _hasTasks = value; OnPropertyChanged(); } }
         public bool NoTasks { get => _noTasks; set { _noTasks = value; OnPropertyChanged(); } }
 
+        public ICommand OpenScheduleCommand { get; }
+        public ICommand PreviousDayCommand { get; }
+        public ICommand NextDayCommand { get; }
         public TodayViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
             TasksForDate = new ObservableCollection<TaskItem>();
             SelectedDate = DateTime.Today;
+            OpenScheduleCommand = new Command(async () => await OpenSchedule());
+            PreviousDayCommand = new Command(PreviousDay);
+            NextDayCommand = new Command(NextDay);
+            LoadDataForDate();
         }
 
         public async Task LoadDataForDate()
         {
             var tasks = await _databaseService.GetTasksForDateAsync(SelectedDate);
+            var sorted = tasks
+                .OrderBy(t => t.IsCompleted)
+                .ThenBy(t => t.DueTime ?? TimeSpan.MaxValue)
+                .ThenBy(t => t.CreatedDate)
+                .ToList();
+
             TasksForDate.Clear();
-            foreach (var t in tasks) 
+            foreach (var t in sorted) 
                 TasksForDate.Add(t);
             HasTasks = TasksForDate.Any();
             NoTasks = !HasTasks;
+        }
+
+        public async Task OpenSchedule()
+        {
+            await Shell.Current.GoToAsync("SchedulePage");
+        }
+
+        private void PreviousDay()
+        {
+            SelectedDate = SelectedDate.AddDays(-1);
+        }
+
+        private void NextDay()
+        {
+            SelectedDate = SelectedDate.AddDays(1);
         }
     }
 }

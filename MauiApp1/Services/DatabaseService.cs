@@ -408,5 +408,13 @@ namespace MauiApp1.Services
             await _database.InsertAsync(defaultList);
             return defaultList.Id;
         }
+
+        public async Task<List<TaskItem>> GetAllTasksWithDueDateAsync()
+        {
+            return await _database.Table<TaskItem>()
+                .Where(t => t.DueDate != null)
+                .OrderBy(t => t.DueDate)
+                .ToListAsync();
+        }
     }
 }

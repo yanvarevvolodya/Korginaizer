@@ -30,7 +30,7 @@
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:PriorityToIconConverter x:Key="PriorityToIconConverter" />
             <converters:OldDateConverter x:Key="OldDateConverter" />
-
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

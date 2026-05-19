@@ -92,6 +92,9 @@ namespace MauiApp1.Models
         [Ignore]
         public string CategoryName { get; set; } = "";
 
+        [Ignore]
+        public string DueTimeOnlyString => DueTime.HasValue ? DueTime.Value.ToString(@"hh\:mm") : "";
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string propertyName = "")

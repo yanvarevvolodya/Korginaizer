@@ -30,7 +30,7 @@
                         <DataTemplate>
                             <Border Background="{AppThemeBinding Light=Transparent, Dark=Transparent}">
                                 <Grid Padding="10"
-                                      ColumnDefinitions="Auto, *, Auto"
+                                      ColumnDefinitions="Auto, *, Auto, Auto"
                                       BackgroundColor="{AppThemeBinding Light=LightBlue, Dark=#374045}"
                                       Margin="0,2"
                                       RowDefinitions="Auto, Auto">
@@ -56,11 +56,6 @@
                                             </Label.Triggers>
                                         </Label>
 
-                                        <Label Text="{Binding CategoryName}"
-                                               FontSize="11"
-                                               TextColor="{AppThemeBinding Light=#555, Dark=#AAA}"
-                                               IsVisible="{Binding CategoryName, Converter={StaticResource StringToBoolConverter}}"/>
-
                                         <!-- Дата и описание -->
                                         <Grid ColumnDefinitions="Auto, *">
                                             <Label Grid.Column="0"
@@ -75,34 +70,26 @@
                                         </Grid>
                                     </StackLayout>
 
-                                    <!-- Кнопки действий -->
-                                    <Grid Grid.Row="0" Grid.Column="2"
-                                          Grid.RowSpan="2"
-                                          ColumnDefinitions="Auto, Auto, Auto">
-                                        <!-- Кнопка календаря (установка даты) -->
-                                        <Button Grid.Column="0"
-                                                ImageSource="{AppThemeBinding Light=calendar1_blue.png, Dark=calendar_white.png}"
-                                                BackgroundColor="Transparent"
-                                                Command="{Binding Path=BindingContext.SetDueDateCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                CommandParameter="{Binding .}"
-                                                WidthRequest="50"/>
+                                    <Label Grid.Column="2"
+                                           Text="{Binding CategoryName}"
+                                           FontSize="11"
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="End"
+                                           Margin="0,0,20,0"
+                                           TextColor="{AppThemeBinding Light=#555, Dark=#AAA}"
+                                           IsVisible="{Binding CategoryName, Converter={StaticResource StringToBoolConverter}}"/>
 
-                                        <!-- Кнопка меню задачи -->
-                                        <Button Grid.Column="1"
-                                                Text="⋯"
-                                                BackgroundColor="Transparent"
-                                                Command="{Binding Path=BindingContext.ShowTaskMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                                CommandParameter="{Binding .}"
-                                                WidthRequest="50"/>
-
-                                        <!-- Кнопка удаления -->
-                                        <Button Grid.Column="2"
-                                                Text="✕"
-                                                BackgroundColor="Transparent"
-                                                TextColor="#DC3545"
-                                                Clicked="OnDeleteTaskClicked"
-                                                WidthRequest="40"/>
-                                    </Grid>
+                                    <Button Grid.Row="0"
+                                            Grid.Column="3"
+                                            Grid.RowSpan="2"
+                                            Text="⋯"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}"
+                                            FontSize="19"
+                                            WidthRequest="50"
+                                            BorderColor="Transparent"
+                                            Command="{Binding Path=BindingContext.ShowTaskMenuCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                            CommandParameter="{Binding .}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>

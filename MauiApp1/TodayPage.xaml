@@ -4,11 +4,32 @@
              x:Class="MauiApp1.TodayPage"
              Title="План на день">
     <StackLayout Padding="15">
-        <DatePicker x:Name="DatePickerControl"
-                    Date="{Binding SelectedDate, Mode=TwoWay}"
-                    Format="dddd, d MMMM yyyy"
-                    HorizontalOptions="Center"
-                    Margin="0,0,0,20"/>
+        <Grid ColumnDefinitions="Auto, *, Auto" HorizontalOptions="Center" Margin="0,0,0,20">
+            <Button Grid.Column="0"
+                    Text="‹"
+                    FontSize="24"
+                    BackgroundColor="Transparent"
+                    BorderColor="Transparent"
+                    TextColor="#007ACC"
+                    WidthRequest="50"
+                    Command="{Binding PreviousDayCommand}"/>
+
+            <DatePicker Grid.Column="1"
+                        x:Name="DatePickerControl"
+                        Date="{Binding SelectedDate, Mode=TwoWay}"
+                        Format="dddd, d MMMM yyyy"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"/>
+
+            <Button Grid.Column="2"
+                    Text="›"
+                    FontSize="24"
+                    BackgroundColor="Transparent"
+                    BorderColor="Transparent"
+                    TextColor="#007ACC"
+                    WidthRequest="50"
+                    Command="{Binding NextDayCommand}"/>
+        </Grid>
 
         <Label Text="Задачи"
                FontSize="18"
@@ -22,14 +43,11 @@
                           BackgroundColor="{AppThemeBinding Light=#F0F0F0, Dark=#2C2C2C}"
                           Margin="0,2">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0"
-                                  IsChecked="{Binding IsCompleted}"
-                                  VerticalOptions="Center"
-                                  Margin="0,0,10,0"/>
-                        <Label Grid.Column="1"
+
+                        <Label Grid.Column="0"
                                Text="{Binding Title}"
                                FontSize="14"
                                VerticalOptions="Center">
@@ -42,6 +60,12 @@
                                 </DataTrigger>
                             </Label.Triggers>
                         </Label>
+
+                        <Label Grid.Column="1"
+                               Text="{Binding DueTimeOnlyString}"
+                               FontSize="12"
+                               TextColor="Gray"
+                               IsVisible="{Binding DueDate.HasValue}"/>
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
@@ -52,6 +76,9 @@
                TextColor="Gray"
                Margin="0,5,0,15"/>
 
-        
+        <Button Text="Все задачи"
+                Command="{Binding OpenScheduleCommand}"
+                WidthRequest="250"/>
+
     </StackLayout>
 </ContentPage>

@@ -23,14 +23,14 @@ namespace MauiApp1
                 viewModel.AddTaskCommand.Execute(null);
         }
 
-        private void OnDeleteTaskClicked(object sender, EventArgs e)
-        {
-            if (sender is Button button && button.BindingContext is TaskItem task)
-            {
-                if (BindingContext is TasksViewModel viewModel)
-                    viewModel.DeleteTaskCommand.Execute(task);
-            }
-        }
+        //private void OnDeleteTaskClicked(object sender, EventArgs e)
+        //{
+        //    if (sender is Button button && button.BindingContext is TaskItem task)
+        //    {
+        //        if (BindingContext is TasksViewModel viewModel)
+        //            viewModel.DeleteTaskCommand.Execute(task);
+        //    }
+        //}
 
         private async void OnTaskCheckedChanged(object sender, CheckedChangedEventArgs e)
         {
