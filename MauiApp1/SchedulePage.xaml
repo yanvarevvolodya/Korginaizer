@@ -15,6 +15,10 @@
         </DataTemplate>
     </ContentPage.Resources>
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Экспорт" Command="{Binding ExportToCalendarCommand}" Order="Primary" Priority="0"/>
+    </ContentPage.ToolbarItems>
+
     <CollectionView ItemsSource="{Binding GroupedTasks}"
                     IsGrouped="True"
                     GroupHeaderTemplate="{StaticResource GroupHeaderTemplate}">

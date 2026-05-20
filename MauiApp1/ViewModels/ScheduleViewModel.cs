@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using Ical.Net;
+using Ical.Net.CalendarComponents;
 
 namespace MauiApp1.ViewModels
 {
@@ -22,12 +24,14 @@ namespace MauiApp1.ViewModels
         }
 
         public ICommand RefreshCommand { get; }
+        public ICommand ExportToCalendarCommand { get; }
 
         public ScheduleViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
             GroupedTasks = new ObservableCollection<GroupedTasks>();
             RefreshCommand = new Command(async () => await LoadTasksAsync());
+            ExportToCalendarCommand = new Command(async () => await ExportToCalendarAsync());
             Task.Run(LoadTasksAsync);
         }
 
@@ -42,6 +46,93 @@ namespace MauiApp1.ViewModels
             GroupedTasks.Clear();
             foreach (var group in grouped)
                 GroupedTasks.Add(group);
+        }
+
+        private async Task ExportToCalendarAsync()
+        {
+            var tasks = await _databaseService.GetAllTasksWithDueDateAsync();
+            if (!tasks.Any())
+            {
+                await Application.Current.MainPage.DisplayAlert("Нет данных", "Нет задач с датой для экспорта.", "OK");
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("BEGIN:VCALENDAR");
+            sb.AppendLine("VERSION:2.0");
+            sb.AppendLine("PRODID:-//Korginaizer//RU");
+            sb.AppendLine("CALSCALE:GREGORIAN");
+
+            foreach (var task in tasks)
+            {
+                if (!task.DueDate.HasValue) continue;
+                var dueDate = task.DueDate.Value;
+                var dueTime = task.DueTime;
+
+                DateTime start, end;
+                bool isAllDay;
+                if (dueTime.HasValue)
+                {
+                    start = dueDate.Date + dueTime.Value;
+                    end = start.AddHours(1);
+                    isAllDay = false;
+                }
+                else
+                {
+                    start = dueDate.Date;
+                    end = dueDate.Date.AddDays(1).AddSeconds(-1);
+                    isAllDay = true;
+                }
+
+                sb.AppendLine("BEGIN:VEVENT");
+                sb.AppendLine($"UID:{Guid.NewGuid():N}");
+                sb.AppendLine($"DTSTAMP:{DateTime.UtcNow:yyyyMMddTHHmmssZ}");
+                if (isAllDay)
+                {
+                    sb.AppendLine($"DTSTART;VALUE=DATE:{start:yyyyMMdd}");
+                    sb.AppendLine($"DTEND;VALUE=DATE:{end:yyyyMMdd}");
+                }
+                else
+                {
+                    var startUtc = start.ToUniversalTime();
+                    var endUtc = end.ToUniversalTime();
+                    sb.AppendLine($"DTSTART:{startUtc:yyyyMMddTHHmmssZ}");
+                    sb.AppendLine($"DTEND:{endUtc:yyyyMMddTHHmmssZ}");
+                }
+                sb.AppendLine($"SUMMARY:{EscapeIcsText(task.Title)}");
+                if (!string.IsNullOrWhiteSpace(task.Description))
+                    sb.AppendLine($"DESCRIPTION:{EscapeIcsText(task.Description)}");
+                if (!isAllDay)
+                {
+                    sb.AppendLine("BEGIN:VALARM");
+                    sb.AppendLine("TRIGGER:-PT15M");
+                    sb.AppendLine("ACTION:DISPLAY");
+                    sb.AppendLine($"DESCRIPTION:Напоминание: {EscapeIcsText(task.Title)}");
+                    sb.AppendLine("END:VALARM");
+                }
+                sb.AppendLine("END:VEVENT");
+            }
+
+            sb.AppendLine("END:VCALENDAR");
+
+            var fileName = $"tasks_{DateTime.Now:yyyyMMdd_HHmmss}.ics";
+            var filePath = Path.Combine(FileSystem.CacheDirectory, fileName);
+            File.WriteAllText(filePath, sb.ToString());
+
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "Экспорт задач в календарь",
+                File = new ShareFile(filePath)
+            });
+        }
+
+        private string EscapeIcsText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            return text.Replace("\\", "\\\\")
+                       .Replace(";", "\\;")
+                       .Replace(",", "\\,")
+                       .Replace("\n", "\\n");
         }
     }
 
