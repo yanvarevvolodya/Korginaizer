@@ -82,8 +82,8 @@ Korginaizer/
 ![Список всех задач](Resources/Screenshots/AllTasks.png)
 ## **Android**
 * Главный экран (TodayPage)
-<img src="Resources/Screenshots/Android_main_screen.jpg" width="100" alt="Главный экран Android">
+<img src="Resources/Screenshots/Android_main_screen.jpg" width="200" alt="Главный экран Android">
 * Задачи (TasksPage)
-![Экран задач на Android](Resources/Screenshots/Android_TasksPage.jpg)
+<img src="Resources/Screenshots/Android_TasksPage.jpg" width="200" alt="Экран задач на Android">
 * Календарь (CalendarPage)
-![Экран календаря на Android](Resources/Screenshots/Android_CalendarPage.jpg)
+<img src="Resources/Screenshots/Android_CalendarPage.jpg" width="200" alt="Экран календаря на Android">
