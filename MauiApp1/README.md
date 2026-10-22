@@ -82,7 +82,7 @@ Korginaizer/
 ![Список всех задач](Resources/Screenshots/AllTasks.png)
 ## **Android**
 * Главный экран (TodayPage)
-![Главный экран на Android](Resources/Screenshots/Android_main_screen.jpg)
+<img src="Resources/Screenshots/Android_main_screen.jpg" width="100" alt="Главный экран Android">
 * Задачи (TasksPage)
 ![Экран задач на Android](Resources/Screenshots/Android_TasksPage.jpg)
 * Календарь (CalendarPage)
