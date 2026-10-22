@@ -41,7 +41,6 @@ namespace MauiApp1.Models
             {
                 if (SetField(ref _isSelected, value))
                 {
-                    // При изменении IsSelected обновляем цвета
                     OnPropertyChanged(nameof(TextColor));
                     OnPropertyChanged(nameof(BackgroundColor));
                     OnPropertyChanged(nameof(BorderColor));
@@ -55,28 +54,25 @@ namespace MauiApp1.Models
             set => SetField(ref _eventCount, value);
         }
 
-        // Вычисляемые свойства
         public string DayNumber => Date.Day.ToString();
         public bool IsWeekend => Date.DayOfWeek == DayOfWeek.Saturday || Date.DayOfWeek == DayOfWeek.Sunday;
         public bool HasEvents => EventCount > 0;
 
-        // Цвета
         public Color TextColor
         {
             get
             {
                 if (!IsCurrentMonth)
                     return Application.Current.RequestedTheme == AppTheme.Dark
-                        ? Color.FromArgb("#666666")  // Серый для тёмной темы
-                        : Color.FromArgb("#AAAAAA"); // Серый для светлой темы
+                        ? Color.FromArgb("#666666")
+                        : Color.FromArgb("#AAAAAA");
 
                 if (IsToday)
-                    return Colors.White; // Белый для сегодняшнего дня (не зависит от темы)
+                    return Colors.White;
 
                 if (IsWeekend)
-                    return Color.FromArgb("#DC3545"); // Красный для выходных (не зависит от темы)
+                    return Color.FromArgb("#DC3545");
 
-                // Для обычных дней - разный цвет в зависимости от темы
                 return Application.Current.RequestedTheme == AppTheme.Dark
                     ? Colors.White
                     : Colors.Black;
@@ -88,12 +84,12 @@ namespace MauiApp1.Models
             get
             {
                 if (IsToday)
-                    return Color.FromArgb("#007ACC"); // Синий для сегодняшнего дня
+                    return Color.FromArgb("#007ACC");
 
                 if (IsSelected)
                     return Application.Current.RequestedTheme == AppTheme.Dark
-                        ? Color.FromArgb("#2A2A2A")     // Тёмно-серый для тёмной темы
-                        : Color.FromArgb("#E3F2FD");    // Светло-голубой для светлой темы
+                        ? Color.FromArgb("#2A2A2A")     
+                        : Color.FromArgb("#E3F2FD");    
 
                 return Colors.Transparent;
             }
@@ -112,7 +108,6 @@ namespace MauiApp1.Models
             }
         }
 
-        // INotifyPropertyChanged реализация
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)

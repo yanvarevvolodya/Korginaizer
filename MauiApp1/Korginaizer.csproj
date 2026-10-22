@@ -97,6 +97,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Resources\Screenshots\" />
 	  <Folder Include="Views\" />
 	</ItemGroup>
 

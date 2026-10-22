@@ -54,7 +54,7 @@
         </Tab>
 
         <Tab Title="{OnPlatform Android=Настройки}" 
-             IsVisible="True"
+             IsVisible="False"
              Icon="settings_blue.png">
             <ShellContent ContentTemplate="{DataTemplate local:SettingsPage}" 
                           Route="SettingsPage" />
